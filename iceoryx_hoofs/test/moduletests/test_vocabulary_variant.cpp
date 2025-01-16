@@ -473,7 +473,7 @@ TEST_F(variant_Test, DirectValueAssignmentWhenAlreadyAssignedWithDifferentType)
     iox::variant<int, float> schlomo;
     schlomo = 123;
     schlomo = 123.01F;
-    EXPECT_THAT(schlomo.index(), Eq(0U));
+    EXPECT_THAT(schlomo.index(), Eq(1U));
 }
 
 TEST_F(variant_Test, HoldsAlternativeForCorrectType)
