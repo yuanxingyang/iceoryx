@@ -19,6 +19,7 @@
 #ifndef IOX_POSH_RUNTIME_IPC_INTERFACE_BASE_HPP
 #define IOX_POSH_RUNTIME_IPC_INTERFACE_BASE_HPP
 
+#include "iceoryx_posh/internal/runtime/ipc_interface.hpp"
 #include "iceoryx_platform/errno.hpp"
 #include "iceoryx_platform/fcntl.hpp"
 #include "iceoryx_platform/stat.hpp"
@@ -35,6 +36,10 @@
 #include "iox/message_queue.hpp"
 #include "iox/named_pipe.hpp"
 #include "iox/unix_domain_socket.hpp"
+
+#if defined(__ETHSOCKET__)
+#include "iox/eth_socket.hpp"
+#endif
 
 #include <cstdint>
 #include <cstdlib>
@@ -147,7 +152,9 @@ using InterfaceName_t = string<MAX_IPC_CHANNEL_NAME_LENGTH>;
 /// @return the interface name with the 'iox1_#_' prefix
 InterfaceName_t ipcChannelNameToInterfaceName(RuntimeName_t channelName, DomainId domainId, ResourceType resourceType);
 
+template <typename IpcChannelType>
 class IpcInterfaceUser;
+template <typename IpcChannelType>
 class IpcInterfaceCreator;
 
 /// @brief Class should never be used by the end-user.
@@ -156,7 +163,7 @@ class IpcInterfaceCreator;
 /// @tparam IpcChannelType the type of ipc channel, supported types are MessageQueue, NamedPipe and UnixDomainSocket
 /// @note This class won't uniquely identify if another object is using the same IPC channel
 template <typename IpcChannelType>
-class IpcInterface
+class IpcInterface: public IIpcInterface
 {
   public:
     static constexpr uint64_t MAX_MESSAGE_SIZE = IpcChannelType::MAX_MESSAGE_SIZE;
@@ -217,8 +224,8 @@ class IpcInterface
     /// @param[in] name of the IPC channel to clean up
     static void cleanupOutdatedIpcChannel(const InterfaceName_t& name) noexcept;
 
-    friend class IpcInterfaceUser;
-    friend class IpcInterfaceCreator;
+    friend class IpcInterfaceUser<IpcChannelType>;
+    friend class IpcInterfaceCreator<IpcChannelType>;
     friend class IpcRuntimeInterface;
 
   protected:
@@ -241,7 +248,9 @@ class IpcInterface
                  const DomainId domainId,
                  const ResourceType resourceType,
                  const uint64_t maxMessages,
-                 const uint64_t messageSize) noexcept;
+                 const uint64_t messageSize,
+                 RoudiIpcChannelType channelType,
+                 IpAdress_t ipAddress) noexcept;
 
     IpcInterface(IpcInterface&&) noexcept = default;
     IpcInterface& operator=(IpcInterface&&) noexcept = default;
@@ -275,6 +284,8 @@ class IpcInterface
 
   protected:
     InterfaceName_t m_interfaceName;
+    RoudiIpcChannelType m_channelType;
+    IpAdress_t m_ipAddress;
     RuntimeName_t m_runtimeName;
     uint64_t m_maxMessageSize{0U};
     uint64_t m_maxMessages{0U};

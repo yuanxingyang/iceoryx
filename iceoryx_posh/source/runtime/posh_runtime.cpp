@@ -33,7 +33,6 @@ namespace runtime
 {
 namespace
 {
-
 // A refcount for use in getLifetimeParticipant(). The refcount being > 0 does not
 // necessarily mean that the runtime is initialized yet, it only controls the point
 // at which the runtime is destroyed.
@@ -76,18 +75,19 @@ void PoshRuntime::setRuntimeFactory(const factory_t& factory) noexcept
     }
 }
 
-PoshRuntime& PoshRuntime::defaultRuntimeFactory(optional<const RuntimeName_t*> name) noexcept
+PoshRuntime& PoshRuntime::defaultRuntimeFactory(optional<const RuntimeName_t*> name,
+    RoudiIpcChannelType channelType, IpAdress_t roudiIp, IpAdress_t ipAddress) noexcept
 {
     // Manual construction and destruction of the PoshRuntimeImpl, inspired by
     // the nifty counter idiom.
     static typename std::aligned_storage<sizeof(PoshRuntimeImpl), alignof(PoshRuntimeImpl)>::type buf;
     // This is the primary lifetime participant. It ensures that, even if getLifetimeParticipant()
     // is never called, the runtime has the same lifetime as a regular static variable.
-    static ScopeGuard staticLifetimeParticipant = [](auto name) {
-        new (&buf) PoshRuntimeImpl(name);
+    static ScopeGuard staticLifetimeParticipant = [](auto name, auto channelType, auto roudiIp, auto ipAddress) {
+        new (&buf) PoshRuntimeImpl(name,DEFAULT_DOMAIN_ID,RuntimeLocation::SEPARATE_PROCESS_FROM_ROUDI,channelType,roudiIp,ipAddress);
         poshRuntimeNeedsManualDestruction() = true;
         return getLifetimeParticipant();
-    }(name);
+    }(name,channelType,roudiIp,ipAddress);
     return reinterpret_cast<PoshRuntimeImpl&>(buf);
 }
 
@@ -97,14 +97,14 @@ PoshRuntime& PoshRuntime::getInstance() noexcept
     return getInstance(nullopt);
 }
 
-PoshRuntime& PoshRuntime::initRuntime(const RuntimeName_t& name) noexcept
+PoshRuntime& PoshRuntime::initRuntime(const RuntimeName_t& name, RoudiIpcChannelType channelType, IpAdress_t roudiIp, IpAdress_t ipAddress) noexcept
 {
-    return getInstance(make_optional<const RuntimeName_t*>(&name));
+    return getInstance(make_optional<const RuntimeName_t*>(&name), channelType, roudiIp, ipAddress);
 }
 
-PoshRuntime& PoshRuntime::getInstance(optional<const RuntimeName_t*> name) noexcept
+PoshRuntime& PoshRuntime::getInstance(optional<const RuntimeName_t*> name, RoudiIpcChannelType channelType, IpAdress_t roudiIp, IpAdress_t ipAddress) noexcept
 {
-    return getRuntimeFactory()(name);
+    return getRuntimeFactory()(name, channelType, roudiIp, ipAddress);
 }
 
 ScopeGuard PoshRuntime::getLifetimeParticipant() noexcept

@@ -56,6 +56,8 @@ struct RouDiConfig
     /// @brief the number of memory chunks used for discovery
     uint32_t discoveryChunkCount{10};
 
+    IpAdress_t ipAddress {DEFALUT_IP};
+
     RouDiConfig& setDefaults() noexcept;
     RouDiConfig& optimize() noexcept;
 };

@@ -25,7 +25,8 @@ namespace iox
 namespace runtime
 {
 /// @brief Class for using a IPC channel
-class IpcInterfaceUser : public IpcInterfaceBase
+template <typename IpcChannelType = platform::IoxIpcChannelType>
+class IpcInterfaceUser : public IpcInterface<IpcChannelType>
 {
   public:
     /// @brief Constructs a IpcInterfaceUser and opens a IPC channel.
@@ -40,7 +41,13 @@ class IpcInterfaceUser : public IpcInterfaceBase
                      const DomainId domainId,
                      const ResourceType resourceType,
                      const uint64_t maxMessages = APP_MAX_MESSAGES,
-                     const uint64_t messageSize = APP_MESSAGE_SIZE) noexcept;
+                     const uint64_t messageSize = APP_MESSAGE_SIZE,
+                     RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+                     IpAdress_t ipAddress = DEFALUT_IP) noexcept
+        : IpcInterface<IpcChannelType>(name, domainId, resourceType, maxMessages, messageSize, channelType, ipAddress)
+    {
+        IpcInterface<IpcChannelType>::openIpcChannel(PosixIpcChannelSide::CLIENT);
+    }
 
     IpcInterfaceUser(IpcInterfaceUser&&) noexcept = default;
     IpcInterfaceUser& operator=(IpcInterfaceUser&&) noexcept = default;

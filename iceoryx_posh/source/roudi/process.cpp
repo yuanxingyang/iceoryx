@@ -31,13 +31,23 @@ Process::Process(const RuntimeName_t& name,
                  const uint32_t pid,
                  const PosixUser& user,
                  const HeartbeatPoolIndexType heartbeatPoolIndex,
-                 const uint64_t sessionId) noexcept
+                 const uint64_t sessionId,
+                 iox::runtime::RoudiIpcChannelType channelType,
+                 IpAdress_t ipAddress) noexcept
     : m_pid(pid)
-    , m_ipcChannel(name, domainId, ResourceType::USER_DEFINED)
     , m_heartbeatPoolIndex(heartbeatPoolIndex)
     , m_user(user)
     , m_sessionId(sessionId)
 {
+    if(iox::runtime::RoudiIpcChannelType::ETH_SOCKET == channelType)
+    {
+        m_ipcChannel = new runtime::IpcInterfaceUser<iox::EthSocket>(name, domainId, ResourceType::USER_DEFINED,
+        APP_MAX_MESSAGES, APP_MESSAGE_SIZE, channelType, ipAddress);
+    }
+    else
+    {
+        m_ipcChannel = new runtime::IpcInterfaceUser<platform::IoxIpcChannelType>(name, domainId, ResourceType::USER_DEFINED);
+    }
 }
 
 uint32_t Process::getPid() const noexcept
@@ -47,12 +57,22 @@ uint32_t Process::getPid() const noexcept
 
 const RuntimeName_t Process::getName() const noexcept
 {
-    return m_ipcChannel.getRuntimeName();
+    if(m_ipcChannel)
+    {
+        return m_ipcChannel->getRuntimeName();
+    }
+
+    return "";
 }
 
 void Process::sendViaIpcChannel(const runtime::IpcMessage& data) noexcept
 {
-    bool sendSuccess = m_ipcChannel.send(data);
+    bool sendSuccess = false;
+
+    if(m_ipcChannel)
+    {
+        sendSuccess = m_ipcChannel->send(data);
+    }
     if (!sendSuccess)
     {
         IOX_LOG(Warn, "Process cannot send message over communication channel");

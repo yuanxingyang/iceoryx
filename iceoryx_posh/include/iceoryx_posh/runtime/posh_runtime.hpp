@@ -66,7 +66,8 @@ class PoshRuntime
     ///            iox::isValidPathEntry
     ///
     /// @return active runtime
-    static PoshRuntime& initRuntime(const RuntimeName_t& name) noexcept;
+    static PoshRuntime& initRuntime(const RuntimeName_t& name, RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+    IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     /// @brief provides an object to extend the lifetime of the runtime
     /// @details While the PoshRuntime has static lifetime, it may not live long enough
@@ -151,12 +152,13 @@ class PoshRuntime
 
   protected:
     friend class roudi_env::RuntimeTestInterface;
-    using factory_t = PoshRuntime& (*)(optional<const RuntimeName_t*>);
+    using factory_t = PoshRuntime& (*)(optional<const RuntimeName_t*>, RoudiIpcChannelType, IpAdress_t roudiIp, IpAdress_t ipAddress);
 
     // Protected constructor for derived classes
     PoshRuntime(optional<const RuntimeName_t*> name) noexcept;
 
-    static PoshRuntime& defaultRuntimeFactory(optional<const RuntimeName_t*> name) noexcept;
+    static PoshRuntime& defaultRuntimeFactory(optional<const RuntimeName_t*> name,
+    RoudiIpcChannelType channelType, IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     /// @brief gets current runtime factory. If the runtime factory is not yet initialized it is set to
     /// defaultRuntimeFactory.
@@ -174,12 +176,14 @@ class PoshRuntime
     /// @param[in] name optional containing the name used for registering with the RouDi daemon
     ///
     /// @return active runtime
-    static PoshRuntime& getInstance(optional<const RuntimeName_t*> name) noexcept;
+    static PoshRuntime& getInstance(optional<const RuntimeName_t*> name, RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+    IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     /// @brief checks the given application name for certain constraints like length or if is empty
     const RuntimeName_t& verifyInstanceName(optional<const RuntimeName_t*> name) noexcept;
 
     const RuntimeName_t m_appName;
+    RoudiIpcChannelType m_channelType;
     concurrent::Atomic<bool> m_shutdownRequested{false};
 };
 

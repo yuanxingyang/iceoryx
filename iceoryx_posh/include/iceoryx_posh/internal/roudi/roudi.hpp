@@ -78,7 +78,9 @@ class RouDi
     version::VersionInfo parseRegisterMessage(const runtime::IpcMessage& message,
                                               uint32_t& pid,
                                               iox_uid_t& userId,
-                                              int64_t& transmissionTimestamp) noexcept;
+                                              int64_t& transmissionTimestamp,
+                                              iox::runtime::RoudiIpcChannelType& channelType,
+                                              IpAdress_t& ipAddress) noexcept;
 
     /// @brief Handles the registration request from process
     /// @param [in] name of the process which wants to register at roudi; this is equal to the IPC channel name
@@ -92,14 +94,16 @@ class RouDi
                          const PosixUser user,
                          const int64_t transmissionTimestamp,
                          const uint64_t sessionId,
-                         const version::VersionInfo& versionInfo) noexcept;
+                         const version::VersionInfo& versionInfo,
+                         iox::runtime::RoudiIpcChannelType channelType,
+                         IpAdress_t ipAddress) noexcept;
 
     /// @brief Creates a unique ID which can be used to check outdated IPC channel transmissions
     /// @return a unique, monotonic and consecutive increasing number
     static uint64_t getUniqueSessionIdForProcess() noexcept;
 
   private:
-    void processRuntimeMessages(runtime::IpcInterfaceCreator&& roudiIpcInterface) noexcept;
+    void processRuntimeMessages(iox::runtime::IIpcInterface* roudiIpcInterface) noexcept;
 
     void monitorAndDiscoveryUpdate() noexcept;
 
@@ -130,6 +134,9 @@ class RouDi
   private:
     std::thread m_monitoringAndDiscoveryThread;
     std::thread m_handleRuntimeMessageThread;
+    #if defined(__ETHSOCKET__)
+    std::thread m_handleRuntimeEthMessageThread;
+    #endif
 
   protected:
     ProcessIntrospectionType m_processIntrospection;

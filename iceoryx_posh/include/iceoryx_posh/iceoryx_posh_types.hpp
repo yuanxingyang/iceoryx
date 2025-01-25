@@ -250,6 +250,9 @@ using RuntimeName_t = string<MAX_RUNTIME_NAME_LENGTH>;
 using NodeName_t = string<MAX_NODE_NAME_LENGTH>;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 using ShmName_t = string<128>;
+constexpr uint32_t IP_MAX_LENGTH = 64U;
+constexpr const char DEFALUT_IP[] = "127.0.0.1:6000";
+using IpAdress_t = string<IP_MAX_LENGTH>;
 
 namespace capro
 {
@@ -265,6 +268,9 @@ using ConfigFilePathString_t = string<1024>;
 
 constexpr const char ROUDI_LOCK_NAME[] = "unique_roudi";
 constexpr const char IPC_CHANNEL_ROUDI_NAME[] = "roudi";
+#if defined(__ETHSOCKET__)
+constexpr const char IPC_ETH_CHANNEL_ROUDI_NAME[] = "roudi_eth";
+#endif
 
 /// shared memory segment for the iceoryx management data
 constexpr const char SHM_NAME[] = "management";

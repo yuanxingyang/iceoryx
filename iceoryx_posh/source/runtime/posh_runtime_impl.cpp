@@ -58,10 +58,13 @@ PoshRuntimeImpl::PoshRuntimeImpl(optional<const RuntimeName_t*> name,
 
 PoshRuntimeImpl::PoshRuntimeImpl(optional<const RuntimeName_t*> name,
                                  const DomainId domainId,
-                                 const RuntimeLocation location) noexcept
-    : PoshRuntimeImpl(name, [&name, &domainId, &location] {
+                                 const RuntimeLocation location,
+                                 RoudiIpcChannelType channelType,
+                                 IpAdress_t roudiIp,
+                                 IpAdress_t ipAddress) noexcept
+    : PoshRuntimeImpl(name, [&name, &domainId, &location, &channelType, &roudiIp, &ipAddress] {
         auto runtimeInterfaceResult =
-            IpcRuntimeInterface::create(*name.value(), domainId, runtime::PROCESS_WAITING_FOR_ROUDI_TIMEOUT);
+            IpcRuntimeInterface::create(*name.value(), domainId, runtime::PROCESS_WAITING_FOR_ROUDI_TIMEOUT, channelType, roudiIp, ipAddress);
         if (runtimeInterfaceResult.has_error())
         {
             switch (runtimeInterfaceResult.error())

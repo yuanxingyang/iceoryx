@@ -57,8 +57,8 @@ BUILD_SHARED="OFF"
 TOML_FLAG="ON"
 COMPONENTS="iceoryx_platform iceoryx_hoofs iceoryx_posh iceoryx_introspection iceoryx_binding_c iceoryx_component"
 TOOLCHAIN_FILE=""
-CMAKE_C_FLAGS=""
-CMAKE_CXX_FLAGS=""
+CMAKE_C_FLAGS="-D__ETHSOCKET__"
+CMAKE_CXX_FLAGS="-D__ETHSOCKET__"
 
 while (( "$#" )); do
   case "$1" in
@@ -340,6 +340,7 @@ if [ "$NO_BUILD" == false ]; then
           -DEXAMPLES=$EXAMPLE_FLAG \
           -DIOX_EXPERIMENTAL_POSH=$EXPERIMENTAL_FLAG \
           -DIOX_EXPERIMENTAL_32_64_BIT_MIX_MODE=$EXPERIMENTAL_32_64_MIX_MODE_FLAG \
+	  -DIOX_MAX_SHM_SEGMENTS=50 \
           -DTOML_CONFIG=$TOML_FLAG \
           -DBUILD_DOC=$BUILD_DOC \
           -DBINDING_C=$BINDING_C_FLAG \

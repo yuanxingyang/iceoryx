@@ -93,7 +93,9 @@ class PoshRuntimeImpl : public PoshRuntime
     // Protected constructor for IPC setup
     PoshRuntimeImpl(optional<const RuntimeName_t*> name,
                     const DomainId domainId = DEFAULT_DOMAIN_ID,
-                    const RuntimeLocation location = RuntimeLocation::SEPARATE_PROCESS_FROM_ROUDI) noexcept;
+                    const RuntimeLocation location = RuntimeLocation::SEPARATE_PROCESS_FROM_ROUDI,
+                    RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+                    IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     PoshRuntimeImpl(optional<const RuntimeName_t*> name,
                     std::pair<IpcRuntimeInterface, optional<SharedMemoryUser>>&& interfaces) noexcept;

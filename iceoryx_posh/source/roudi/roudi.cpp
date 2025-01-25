@@ -83,12 +83,33 @@ RouDi::~RouDi() noexcept
 
 void RouDi::startProcessRuntimeMessagesThread() noexcept
 {
-    m_handleRuntimeMessageThread =
-        std::thread(&RouDi::processRuntimeMessages,
-                    this,
-                    runtime::IpcInterfaceCreator::create(
-                        IPC_CHANNEL_ROUDI_NAME, m_roudiConfig.domainId, ResourceType::ICEORYX_DEFINED)
-                        .expect("Creating IPC channel for request to RouDi"));
+    auto ipcInterfaceCreator = runtime::IpcInterfaceCreator<platform::IoxIpcChannelType>::create(
+                         IPC_CHANNEL_ROUDI_NAME, m_roudiConfig.domainId, ResourceType::ICEORYX_DEFINED);
+    if (ipcInterfaceCreator.has_value())
+    {
+        m_handleRuntimeMessageThread =
+            std::thread(&RouDi::processRuntimeMessages,
+                        this, ipcInterfaceCreator.value());
+    }
+    else
+    {
+        IOX_LOG(Error, "Creating platform::IoxIpcChannelType IPC channel for request to RouDi failed!");
+    }
+    #if defined(__ETHSOCKET__)
+    auto ethipcInterfaceCreator = runtime::IpcInterfaceCreator<iox::EthSocket>::create(
+                         IPC_ETH_CHANNEL_ROUDI_NAME, m_roudiConfig.domainId, ResourceType::ICEORYX_DEFINED, 
+                         ROUDI_MAX_MESSAGES, ROUDI_MESSAGE_SIZE, iox::runtime::RoudiIpcChannelType::ETH_SOCKET, m_roudiConfig.ipAddress);
+    if (ethipcInterfaceCreator.has_value())
+    {
+        m_handleRuntimeEthMessageThread =
+            std::thread(&RouDi::processRuntimeMessages,
+                        this, ethipcInterfaceCreator.value());
+    }
+    else
+    {
+        IOX_LOG(Error, "Creating iox::EthSocket IPC channel for request to RouDi failed!");
+    }
+    #endif
 }
 
 void RouDi::shutdown() noexcept
@@ -167,6 +188,14 @@ void RouDi::shutdown() noexcept
         m_handleRuntimeMessageThread.join();
         IOX_LOG(Debug, "...'IPC-msg-process' thread joined.");
     }
+    #if defined(__ETHSOCKET__)
+    if (m_handleRuntimeEthMessageThread.joinable())
+    {
+        IOX_LOG(Debug, "Joining 'IPC-ethmsg-process' thread...");
+        m_handleRuntimeEthMessageThread.join();
+        IOX_LOG(Debug, "...'IPC-ethmsg-process' thread joined.");
+    }
+    #endif
 }
 
 void RouDi::cyclicUpdateHook() noexcept
@@ -243,7 +272,7 @@ void RouDi::monitorAndDiscoveryUpdate() noexcept
     }
 }
 
-void RouDi::processRuntimeMessages(runtime::IpcInterfaceCreator&& roudiIpcInterface) noexcept
+void RouDi::processRuntimeMessages(iox::runtime::IIpcInterface* roudiIpcInterface) noexcept
 {
     auto roudiIpc = std::move(roudiIpcInterface);
 
@@ -258,7 +287,7 @@ void RouDi::processRuntimeMessages(runtime::IpcInterfaceCreator&& roudiIpcInterf
     {
         // read RouDi's IPC channel
         runtime::IpcMessage message;
-        if (roudiIpc.timedReceive(m_runtimeMessagesThreadTimeout, message))
+        if (roudiIpc->timedReceive(m_runtimeMessagesThreadTimeout, message))
         {
             auto cmd = runtime::stringToIpcMessageType(message.getElementAtIndex(0).c_str());
             RuntimeName_t runtimeName{into<lossy<RuntimeName_t>>(message.getElementAtIndex(1))};
@@ -271,7 +300,9 @@ void RouDi::processRuntimeMessages(runtime::IpcInterfaceCreator&& roudiIpcInterf
 version::VersionInfo RouDi::parseRegisterMessage(const runtime::IpcMessage& message,
                                                  uint32_t& pid,
                                                  iox_uid_t& userId,
-                                                 int64_t& transmissionTimestamp) noexcept
+                                                 int64_t& transmissionTimestamp,
+                                                 iox::runtime::RoudiIpcChannelType& channelType, 
+                                                 IpAdress_t& ipAddress) noexcept
 {
     convert::from_string<uint32_t>(message.getElementAtIndex(2).c_str()).and_then([&pid](const auto value) {
         pid = value;
@@ -283,6 +314,12 @@ version::VersionInfo RouDi::parseRegisterMessage(const runtime::IpcMessage& mess
         .and_then([&transmissionTimestamp](const auto value) { transmissionTimestamp = value; });
 
     Serialization serializationVersionInfo(message.getElementAtIndex(5));
+
+    convert::from_string<uint32_t>(message.getElementAtIndex(6).c_str()).and_then([&channelType](const auto value) {
+        channelType = (iox::runtime::RoudiIpcChannelType)value;
+    });
+
+    ipAddress = iox::string<IP_MAX_LENGTH>(TruncateToCapacity,message.getElementAtIndex(7).c_str(),IP_MAX_LENGTH);
     return serializationVersionInfo;
 }
 
@@ -311,7 +348,7 @@ void RouDi::processMessage(const runtime::IpcMessage& message,
     {
     case runtime::IpcMessageType::REG:
     {
-        if (message.getNumberOfElements() != 6)
+        if (message.getNumberOfElements() != 8)
         {
             IOX_LOG(Error,
                     "Wrong number of parameters for \"IpcMessageType::REG\" from \"" << runtimeName << "\"received!");
@@ -321,14 +358,18 @@ void RouDi::processMessage(const runtime::IpcMessage& message,
             uint32_t pid{0U};
             iox_uid_t userId{0};
             int64_t transmissionTimestamp{0};
-            version::VersionInfo versionInfo = parseRegisterMessage(message, pid, userId, transmissionTimestamp);
+            iox::runtime::RoudiIpcChannelType channelType{iox::runtime::RoudiIpcChannelType::BASE};
+            IpAdress_t ipAddress;
+            version::VersionInfo versionInfo = parseRegisterMessage(message, pid, userId, transmissionTimestamp, channelType, ipAddress);
 
             registerProcess(runtimeName,
                             pid,
                             PosixUser{userId},
                             transmissionTimestamp,
                             getUniqueSessionIdForProcess(),
-                            versionInfo);
+                            versionInfo,
+                            channelType,
+                            ipAddress);
         }
         break;
     }
@@ -560,12 +601,14 @@ void RouDi::registerProcess(const RuntimeName_t& name,
                             const PosixUser user,
                             const int64_t transmissionTimestamp,
                             const uint64_t sessionId,
-                            const version::VersionInfo& versionInfo) noexcept
+                            const version::VersionInfo& versionInfo,
+                            iox::runtime::RoudiIpcChannelType channelType,
+                            IpAdress_t ipAddress) noexcept
 {
     bool monitorProcess = (m_roudiConfig.monitoringMode == roudi::MonitoringMode::ON
                            && !m_roudiConfig.sharesAddressSpaceWithApplications);
     IOX_DISCARD_RESULT(
-        m_prcMgr->registerProcess(name, pid, user, monitorProcess, transmissionTimestamp, sessionId, versionInfo));
+        m_prcMgr->registerProcess(name, pid, user, monitorProcess, transmissionTimestamp, sessionId, versionInfo, channelType, ipAddress));
 }
 
 uint64_t RouDi::getUniqueSessionIdForProcess() noexcept

@@ -80,7 +80,9 @@ class ProcessManager : public ProcessManagerInterface
                          const bool isMonitored,
                          const int64_t transmissionTimestamp,
                          const uint64_t sessionId,
-                         const version::VersionInfo& versionInfo) noexcept;
+                         const version::VersionInfo& versionInfo,
+                         iox::runtime::RoudiIpcChannelType channelType,
+                         IpAdress_t ipAddress) noexcept;
 
     /// @brief Unregisters a process at the ProcessManager
     /// @param [in] name of the process which wants to unregister
@@ -176,7 +178,9 @@ class ProcessManager : public ProcessManagerInterface
                     const bool isMonitored,
                     const int64_t transmissionTimestamp,
                     const uint64_t sessionId,
-                    const version::VersionInfo& versionInfo) noexcept;
+                    const version::VersionInfo& versionInfo,
+                    iox::runtime::RoudiIpcChannelType channelType,
+                    IpAdress_t ipAddress) noexcept;
 
     /// @brief Removes the process from the managed client process list, identified by its id.
     /// @param [in] name The process name which should be removed.

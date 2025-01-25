@@ -129,6 +129,7 @@ iox_add_library(
         posix/ipc/source/posix_shared_memory.cpp
         posix/ipc/source/posix_shared_memory_object.cpp
         posix/ipc/source/unix_domain_socket.cpp
+        posix/ipc/source/eth_socket.cpp
         posix/filesystem/source/file.cpp
         posix/filesystem/source/file_lock.cpp
         posix/filesystem/source/posix_acl.cpp

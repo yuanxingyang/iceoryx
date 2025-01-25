@@ -19,6 +19,8 @@
 
 #include <cstdint>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 int iox_bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen);
 int iox_socket(int domain, int type, int protocol);

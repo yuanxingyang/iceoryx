@@ -30,6 +30,9 @@ IceOryxRouDiComponents::IceOryxRouDiComponents(const IceoryxConfig& config) noex
         // if there was an outdated roudi IPC channel, it will be cleaned up
         // if there is an outdated IPC channel, the start of the apps will be terminated
         runtime::IpcInterfaceBase::cleanupOutdatedIpcChannel(roudi::IPC_CHANNEL_ROUDI_NAME);
+#if defined(__ETHSOCKET__)
+        runtime::IpcInterface<iox::EthSocket>::cleanupOutdatedIpcChannel(roudi::IPC_ETH_CHANNEL_ROUDI_NAME);
+#endif
 
         rouDiMemoryManager.createAndAnnounceMemory().or_else([](RouDiMemoryManagerError error) {
             IOX_LOG(Fatal, "Could not create SharedMemory! Error: " << error);

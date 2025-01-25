@@ -19,6 +19,7 @@
 #include "iceoryx_versions.hpp"
 #include "iox/detail/convert.hpp"
 #include "iox/logging.hpp"
+#include "iox/std_string_support.hpp"
 
 #include "iceoryx_platform/getopt.hpp"
 #include <iostream>
@@ -34,6 +35,7 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
                                        {"version", no_argument, nullptr, 'v'},
                                        {"monitoring-mode", required_argument, nullptr, 'm'},
                                        {"log-level", required_argument, nullptr, 'l'},
+                                       {"address", required_argument, nullptr, 'a'},
                                        {"domain-id", required_argument, nullptr, 'd'},
                                        {"unique-roudi-id", required_argument, nullptr, 'u'},
                                        {"compatibility", required_argument, nullptr, 'x'},
@@ -42,7 +44,7 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
                                        {nullptr, 0, nullptr, 0}};
 
     // colon after shortOption means it requires an argument, two colons mean optional argument
-    constexpr const char* SHORT_OPTIONS = "hvm:l:d:u:x:t:k:";
+    constexpr const char* SHORT_OPTIONS = "hvm:l:a:d:u:x:t:k:";
     int index;
     int32_t opt{-1};
     while ((opt = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, &index), opt != -1))
@@ -54,6 +56,8 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
             std::cout << "Options:" << std::endl;
             std::cout << "-h, --help                        Display help." << std::endl;
             std::cout << "-v, --version                     Display version." << std::endl;
+            std::cout << "-a, --address                     IP Address,IP:Port" << std::endl;
+            std::cout << "                                  __ETHSOCKET__ needs to be defined during compilation" << std::endl;
             std::cout << "-d, --domain-id <UINT>            Set the Domain ID." << std::endl;
             std::cout << "                                  <UINT> 0..65535" << std::endl;
             std::cout << "                                  Experimental!" << std::endl;
@@ -101,6 +105,9 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
             std::cout << "Commit ID: " << ICEORYX_SHA1 << std::endl;
             m_cmdLineArgs.run = false;
             break;
+        case 'a':
+                m_cmdLineArgs.roudiConfig.ipAddress = string<IP_MAX_LENGTH>(TruncateToCapacity,optarg,IP_MAX_LENGTH);
+                break;
         case 'd':
         {
             constexpr uint64_t MAX_DOMAIN_ID = ((1 << 16) - 1);

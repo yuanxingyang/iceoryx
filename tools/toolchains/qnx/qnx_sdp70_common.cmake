@@ -40,9 +40,9 @@ SET(QNX_TARGET "$ENV{QNX_TARGET}")
 SET(CMAKE_MAKE_PROGRAM "${QNX_HOST}/usr/bin/make" CACHE PATH "QNX Make Program")
 SET(CMAKE_SH           "${QNX_HOST}/usr/bin/ksh"  CACHE PATH "QNX shell Program")
 
-set(CMAKE_C_COMPILER "${QNX_HOST}/usr/bin/qcc")
+set(CMAKE_C_COMPILER "${QNX_HOST}/usr/bin/aarch64-unknown-nto-qnx7.1.0-gcc")
 set(CMAKE_C_COMPILER_TARGET ${arch})
-set(CMAKE_CXX_COMPILER "${QNX_HOST}/usr/bin/q++")
+set(CMAKE_CXX_COMPILER "${QNX_HOST}/usr/bin/aarch64-unknown-nto-qnx7.1.0-g++")
 set(CMAKE_CXX_COMPILER_TARGET ${arch})
 
 SET(CMAKE_STRIP   "${QNX_HOST}/usr/bin/nto${CMAKE_SYSTEM_PROCESSOR}-strip" CACHE PATH "strip")

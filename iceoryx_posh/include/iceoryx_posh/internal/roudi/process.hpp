@@ -17,6 +17,7 @@
 #ifndef IOX_POSH_ROUDI_PROCESS_HPP
 #define IOX_POSH_ROUDI_PROCESS_HPP
 
+#include "iceoryx_posh/internal/runtime/ipc_interface.hpp"
 #include "iceoryx_posh/internal/mepoo/segment_manager.hpp"
 #include "iceoryx_posh/internal/roudi/port_manager.hpp"
 #include "iceoryx_posh/internal/runtime/ipc_interface_user.hpp"
@@ -50,7 +51,9 @@ class Process
             const uint32_t pid,
             const PosixUser& user,
             const HeartbeatPoolIndexType heartbeatPoolIndex,
-            const uint64_t sessionId) noexcept;
+            const uint64_t sessionId,
+            iox::runtime::RoudiIpcChannelType channelType,
+            IpAdress_t ipAddress) noexcept;
 
     Process(const Process& other) = delete;
     Process& operator=(const Process& other) = delete;
@@ -77,7 +80,7 @@ class Process
 
   private:
     const uint32_t m_pid{0U};
-    runtime::IpcInterfaceUser m_ipcChannel;
+    iox::runtime::IIpcInterface* m_ipcChannel;
     HeartbeatPoolIndexType m_heartbeatPoolIndex;
     PosixUser m_user;
     concurrent::Atomic<uint64_t> m_sessionId{0U};

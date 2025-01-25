@@ -27,7 +27,8 @@ namespace runtime
 class PoshRuntimeSingleProcess : public PoshRuntimeImpl
 {
   public:
-    PoshRuntimeSingleProcess(const RuntimeName_t& name) noexcept;
+    PoshRuntimeSingleProcess(const RuntimeName_t& name, RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+    IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
     ~PoshRuntimeSingleProcess();
 };
 } // namespace runtime

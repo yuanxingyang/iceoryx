@@ -145,8 +145,6 @@ iox_add_library(
         source/version/version_info.cpp
         source/runtime/heartbeat.cpp
         source/runtime/ipc_interface_base.cpp
-        source/runtime/ipc_interface_user.cpp
-        source/runtime/ipc_interface_creator.cpp
         source/runtime/ipc_runtime_interface.cpp
         source/runtime/ipc_message.cpp
         source/runtime/port_config_info.cpp

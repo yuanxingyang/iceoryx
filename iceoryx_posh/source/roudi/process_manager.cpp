@@ -225,7 +225,9 @@ bool ProcessManager::registerProcess(const RuntimeName_t& name,
                                      const bool isMonitored,
                                      const int64_t transmissionTimestamp,
                                      const uint64_t sessionId,
-                                     const version::VersionInfo& versionInfo) noexcept
+                                     const version::VersionInfo& versionInfo,
+                                     iox::runtime::RoudiIpcChannelType channelType,
+                                     IpAdress_t ipAddress) noexcept
 {
     bool returnValue{false};
 
@@ -258,12 +260,12 @@ bool ProcessManager::registerProcess(const RuntimeName_t& name,
             {
                 // try registration again, should succeed since removal was successful
                 returnValue =
-                    this->addProcess(name, pid, user, isMonitored, transmissionTimestamp, sessionId, versionInfo);
+                    this->addProcess(name, pid, user, isMonitored, transmissionTimestamp, sessionId, versionInfo, channelType, ipAddress);
             }
         })
         .or_else([&]() {
             // process does not exist in list and can be added
-            returnValue = this->addProcess(name, pid, user, isMonitored, transmissionTimestamp, sessionId, versionInfo);
+            returnValue = this->addProcess(name, pid, user, isMonitored, transmissionTimestamp, sessionId, versionInfo, channelType, ipAddress);
         });
 
     return returnValue;
@@ -275,7 +277,9 @@ bool ProcessManager::addProcess(const RuntimeName_t& name,
                                 const bool isMonitored,
                                 const int64_t transmissionTimestamp,
                                 const uint64_t sessionId,
-                                const version::VersionInfo& versionInfo) noexcept
+                                const version::VersionInfo& versionInfo,
+                                iox::runtime::RoudiIpcChannelType channelType,
+                                IpAdress_t ipAddress) noexcept
 {
     if (!version::VersionInfo::getCurrentVersion().checkCompatibility(versionInfo, m_compatibilityCheckLevel))
     {
@@ -304,7 +308,7 @@ bool ProcessManager::addProcess(const RuntimeName_t& name,
         heartbeatPoolIndex = heartbeat.to_index();
         heartbeatOffset = UntypedRelativePointer::getOffset(segment_id_t{m_mgmtSegmentId}, heartbeat.to_ptr());
     }
-    m_processList.emplace_back(name, m_domainId, pid, user, heartbeatPoolIndex, sessionId);
+    m_processList.emplace_back(name, m_domainId, pid, user, heartbeatPoolIndex, sessionId, channelType, ipAddress);
 
     // send REG_ACK and BaseAddrString
     runtime::IpcMessage sendBuffer;

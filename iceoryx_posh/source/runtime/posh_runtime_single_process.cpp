@@ -29,14 +29,14 @@ PoshRuntime*& getSingleProcessRuntime() noexcept
     return singleProcessRuntime;
 }
 
-PoshRuntime& singleProcessRuntimeFactory(optional<const RuntimeName_t*>) noexcept
+PoshRuntime& singleProcessRuntimeFactory(optional<const RuntimeName_t*>, RoudiIpcChannelType, IpAdress_t, IpAdress_t) noexcept
 {
     return *getSingleProcessRuntime();
 }
 
-PoshRuntimeSingleProcess::PoshRuntimeSingleProcess(const RuntimeName_t& name) noexcept
+PoshRuntimeSingleProcess::PoshRuntimeSingleProcess(const RuntimeName_t& name, RoudiIpcChannelType channelType, IpAdress_t roudiIp, IpAdress_t ipAddress) noexcept
     : PoshRuntimeImpl(
-          make_optional<const RuntimeName_t*>(&name), DEFAULT_DOMAIN_ID, RuntimeLocation::SAME_PROCESS_LIKE_ROUDI)
+          make_optional<const RuntimeName_t*>(&name), DEFAULT_DOMAIN_ID, RuntimeLocation::SAME_PROCESS_LIKE_ROUDI, channelType, roudiIp, ipAddress)
 {
     auto currentFactory = PoshRuntime::getRuntimeFactory();
     if (currentFactory != nullptr && *currentFactory == PoshRuntime::defaultRuntimeFactory)

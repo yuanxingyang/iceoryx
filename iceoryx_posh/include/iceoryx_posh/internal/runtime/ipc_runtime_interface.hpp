@@ -44,7 +44,8 @@ class IpcRuntimeInterface
     /// @param[in] roudiWaitingTimeout is the time to wait for RouDi to start if it is nor running
     /// @return an IPC interface to communicate with RouDi or a IpcRuntimeInterfaceError
     static expected<IpcRuntimeInterface, IpcRuntimeInterfaceError> create(
-        const RuntimeName_t& runtimeName, const DomainId domainId, const units::Duration roudiWaitingTimeout) noexcept;
+        const RuntimeName_t& runtimeName, const DomainId domainId, const units::Duration roudiWaitingTimeout,
+        RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE, IpAdress_t roudiIp = DEFALUT_IP, IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     ~IpcRuntimeInterface() noexcept = default;
 
@@ -93,19 +94,19 @@ class IpcRuntimeInterface
         MALFORMED_RESPONSE
     };
 
-    IpcRuntimeInterface(IpcInterfaceCreator&& appIpcInterface,
-                        IpcInterfaceUser&& roudiIpcInterface,
+    IpcRuntimeInterface(IIpcInterface* appIpcInterface,
+                       IIpcInterface* roudiIpcInterface,
                         MgmtShmCharacteristics&& mgmtShmCharacteristics) noexcept;
 
-    static void waitForRoudi(IpcInterfaceUser& roudiIpcInterface, deadline_timer& timer) noexcept;
+    static void waitForRoudi(IIpcInterface* roudiIpcInterface, deadline_timer& timer) noexcept;
 
     static RegAckResult waitForRegAck(const int64_t transmissionTimestamp,
-                                      IpcInterfaceCreator& appIpcInterface,
+                                      IIpcInterface* appIpcInterface,
                                       MgmtShmCharacteristics& mgmtShmCharacteristics) noexcept;
 
   private:
-    IpcInterfaceCreator m_AppIpcInterface;
-    IpcInterfaceUser m_RoudiIpcInterface;
+    IIpcInterface* m_AppIpcInterface;
+    IIpcInterface* m_RoudiIpcInterface;
     MgmtShmCharacteristics m_mgmtShmCharacteristics;
 };
 

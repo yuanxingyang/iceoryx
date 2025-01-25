@@ -34,7 +34,8 @@ enum class IpcInterfaceCreatorError
 
 /// @brief Class for creating and handling a IPC channel
 /// @note This class makes sures the IPC channel is created uniquely
-class IpcInterfaceCreator : public IpcInterfaceBase
+template <typename IpcChannelType = platform::IoxIpcChannelType>
+class IpcInterfaceCreator : public IpcInterface<IpcChannelType>
 {
   public:
     /// @brief Constructs a 'IpcInterfaceCreator' and opens a new IPC channel.
@@ -46,12 +47,14 @@ class IpcInterfaceCreator : public IpcInterfaceBase
     /// @return The 'IpcInterfaceCreator' or an error if the file lock for the IPC channel could not be obtained
     /// @note The IPC channel might not be initialized. Therefore, 'isInitialized' should always be called before using
     /// this class.
-    static expected<IpcInterfaceCreator, IpcInterfaceCreatorError>
+    static expected<IpcInterfaceCreator<IpcChannelType>*, IpcInterfaceCreatorError>
     create(const RuntimeName_t& runtimeName,
            const DomainId domainId,
            const ResourceType resourceType,
            const uint64_t maxMessages = ROUDI_MAX_MESSAGES,
-           const uint64_t messageSize = ROUDI_MESSAGE_SIZE) noexcept;
+           const uint64_t messageSize = ROUDI_MESSAGE_SIZE,
+           RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+           IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
     IpcInterfaceCreator(IpcInterfaceCreator&&) noexcept = default;
     IpcInterfaceCreator& operator=(IpcInterfaceCreator&&) noexcept = default;
@@ -68,7 +71,9 @@ class IpcInterfaceCreator : public IpcInterfaceBase
                         const DomainId domainId,
                         const ResourceType resourceType,
                         const uint64_t maxMessages,
-                        const uint64_t messageSize) noexcept;
+                        const uint64_t messageSize,
+                        RoudiIpcChannelType channelType = RoudiIpcChannelType::BASE,
+                        IpAdress_t ipAddress = DEFALUT_IP) noexcept;
 
   private:
     friend class IpcRuntimeInterface;
@@ -78,4 +83,5 @@ class IpcInterfaceCreator : public IpcInterfaceBase
 } // namespace runtime
 } // namespace iox
 
+#include "iceoryx_posh/internal/runtime/ipc_interface_creator.inl"
 #endif // IOX_POSH_RUNTIME_IPC_INTERFACE_CREATOR_HPP

@@ -32,6 +32,3 @@ endif()
 
 # check platform requirements
 
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "QCC")
-    message( FATAL_ERROR "The platform ${ICEORYX_PLATFORM_STRING} supports only the gcc compiler and not ${CMAKE_CXX_COMPILER_ID}!" )
-endif()

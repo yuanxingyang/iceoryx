@@ -88,7 +88,9 @@ IpcInterface<IpcChannelType>::IpcInterface(const RuntimeName_t& runtimeName,
                                            const DomainId domainId,
                                            const ResourceType resourceType,
                                            const uint64_t maxMessages,
-                                           const uint64_t messageSize) noexcept
+                                           const uint64_t messageSize,
+                                           RoudiIpcChannelType channelType,
+                                           IpAdress_t ipAddress) noexcept
 {
     if (runtimeName.empty())
     {
@@ -105,6 +107,9 @@ IpcInterface<IpcChannelType>::IpcInterface(const RuntimeName_t& runtimeName,
     }
 
     m_interfaceName = ipcChannelNameToInterfaceName(runtimeName, domainId, resourceType);
+
+    m_channelType = channelType;
+    m_ipAddress = ipAddress;
     m_runtimeName = runtimeName;
     m_maxMessages = maxMessages;
     m_maxMessageSize = messageSize;
@@ -237,9 +242,19 @@ bool IpcInterface<IpcChannelType>::openIpcChannel(const PosixIpcChannelSide chan
 {
     m_channelSide = channelSide;
 
+    InterfaceName_t address;
+    if (RoudiIpcChannelType::ETH_SOCKET == m_channelType)
+    {
+        address = m_ipAddress;
+    }
+    else
+    {
+        address = m_interfaceName;
+    }
+
     using IpcChannelBuilder_t = typename IpcChannelType::Builder_t;
     IpcChannelBuilder_t()
-        .name(m_interfaceName)
+        .name(address)
         .channelSide(m_channelSide)
         .maxMsgSize(m_maxMessageSize)
         .maxMsgNumber(m_maxMessages)
@@ -290,6 +305,14 @@ bool IpcInterface<NamedPipe>::ipcChannelMapsToFile() noexcept
     return true;
 }
 
+#if defined(__ETHSOCKET__)
+template <>
+bool IpcInterface<iox::EthSocket>::ipcChannelMapsToFile() noexcept
+{
+    return true;
+}
+#endif
+
 template <typename IpcChannelType>
 bool IpcInterface<IpcChannelType>::hasClosableIpcChannel() const noexcept
 {
@@ -308,6 +331,9 @@ void IpcInterface<IpcChannelType>::cleanupOutdatedIpcChannel(const InterfaceName
 template class IpcInterface<UnixDomainSocket>;
 template class IpcInterface<NamedPipe>;
 template class IpcInterface<MessageQueue>;
+#if defined(__ETHSOCKET__)
+template class IpcInterface<iox::EthSocket>;
+#endif
 
 } // namespace runtime
 } // namespace iox
