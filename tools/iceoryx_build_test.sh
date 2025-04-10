@@ -57,8 +57,8 @@ BUILD_SHARED="OFF"
 TOML_FLAG="ON"
 COMPONENTS="iceoryx_platform iceoryx_hoofs iceoryx_posh iceoryx_introspection iceoryx_binding_c iceoryx_component"
 TOOLCHAIN_FILE=""
-CMAKE_C_FLAGS="-D__ETHSOCKET__"
-CMAKE_CXX_FLAGS="-D__ETHSOCKET__"
+CMAKE_C_FLAGS="-D__ETHSOCKET__ -D__VMSHM__"
+CMAKE_CXX_FLAGS="-D__ETHSOCKET__ -D__VMSHM__"
 
 while (( "$#" )); do
   case "$1" in
@@ -352,6 +352,11 @@ if [ "$NO_BUILD" == false ]; then
           -DTEST_WITH_HUGE_PAYLOAD=$TEST_HUGE_PAYLOAD \
           -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
           -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+	  -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DANDROID_PLATFORM=android-31 \
+          -DETHSOCKET=ON \
+          -DVMSHM=ON \
+	  -DIOX_EXPERIMENTAL_32_64_BIT_MIX_MODE=ON \
           "$WORKSPACE"/iceoryx_meta
 
     cmake --build . --target install -- -j$NUM_JOBS
@@ -394,6 +399,8 @@ if [ "$OUT_OF_TREE_FLAG" == "ON" ]; then
                   -DBINDING_C=$BINDING_C_FLAG \
                   -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
                   -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+                  -DVMSHM=ON \
+                  -DETHSOCKET=ON \
                   "$WORKSPACE"/iceoryx_examples/"$ex"
             if ! cmake --build . --target install -- -j$NUM_JOBS; then
                 echo "Out of tree build failed"

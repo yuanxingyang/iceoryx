@@ -78,6 +78,17 @@ class IpcRuntimeInterface
     /// @return relative pointer offset for the heartbeat or 'nullopt' if monitoring is disabled
     optional<UntypedRelativePointer::offset_t> getHeartbeatAddressOffset() const noexcept;
 
+#if defined(__VMSHM__)
+    /// @brief get the mangment base address of the shared memory object
+    /// @return base address
+    uintptr_t getMgtBaseAddress() const noexcept;
+#endif
+#if defined(__ANDROID_VM_SHM__)
+    /// @brief get the mangment base address of the shared memory object for android
+    /// @return base address
+    string<platform::IOX_MAX_SHM_NAME_LENGTH> getAndroidMgtAddress() const noexcept;
+#endif
+
   private:
     struct MgmtShmCharacteristics
     {
@@ -85,6 +96,12 @@ class IpcRuntimeInterface
         uint64_t segmentId{0U};
         UntypedRelativePointer::offset_t segmentManagerAddressOffset{UntypedRelativePointer::NULL_POINTER_OFFSET};
         optional<UntypedRelativePointer::offset_t> heartbeatAddressOffset;
+#if defined(__VMSHM__)
+        uintptr_t mgtbaseAddress{0x0};
+#endif
+#if defined(__ANDROID_VM_SHM__)
+        string<platform::IOX_MAX_SHM_NAME_LENGTH> androidMgtAddress;
+#endif
     };
 
     enum class RegAckResult

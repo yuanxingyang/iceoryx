@@ -59,7 +59,9 @@ class ProcessManager : public ProcessManagerInterface
     ProcessManager(RouDiMemoryInterface& roudiMemoryInterface,
                    PortManager& portManager,
                    const DomainId domainId,
-                   const version::CompatibilityCheckLevel compatibilityCheckLevel) noexcept;
+                   const version::CompatibilityCheckLevel compatibilityCheckLevel,
+                   uintptr_t mgtbaseAddress = 0x0,
+                   std::string androidMgrAddress = "/dev/bosch_shmem") noexcept;
     virtual ~ProcessManager() noexcept override = default;
 
     ProcessManager(const ProcessManager& other) = delete;
@@ -228,7 +230,13 @@ class ProcessManager : public ProcessManagerInterface
     RouDiMemoryInterface& m_roudiMemoryInterface;
     PortManager& m_portManager;
     const DomainId m_domainId;
+    uintptr_t m_mgtbaseAddress;
+    std::string m_AndroidMgrAddress;
+    #if defined(__VMSHM__)
+    mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>* m_segmentManager{nullptr};
+    #else
     mepoo::SegmentManager<>* m_segmentManager{nullptr};
+    #endif
     mepoo::MemoryManager* m_introspectionMemoryManager{nullptr};
     segment_id_underlying_t m_mgmtSegmentId{UntypedRelativePointer::NULL_POINTER_ID};
     ProcessList_t m_processList;

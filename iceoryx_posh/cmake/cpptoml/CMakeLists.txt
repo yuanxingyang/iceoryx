@@ -75,6 +75,14 @@ if(DEFINED CMAKE_TOOLCHAIN_FILE)
     set(cpptoml_DIR ${cpptoml_DIR} CACHE PATH "" FORCE)
 endif()
 
+if(DEFINED ANDROID_PLATFORM)
+    list(APPEND CMAKE_ADDITIONAL_OPTIONS "-DANDROID_PLATFORM=${ANDROID_PLATFORM}")
+endif()
+
+if(DEFINED ANDROID_TOOLCHAIN_NAME)
+    list(APPEND CMAKE_ADDITIONAL_OPTIONS "-DANDROID_TOOLCHAIN_NAME=${ANDROID_TOOLCHAIN_NAME}")
+endif()
+
 execute_process(
     COMMAND git apply -R -p1 --ignore-space-change --whitespace=nowarn --check
     INPUT_FILE "${CMAKE_CURRENT_LIST_DIR}/0001-cpptoml-cmake-version.patch"

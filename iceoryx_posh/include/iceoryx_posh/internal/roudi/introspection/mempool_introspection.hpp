@@ -93,8 +93,13 @@ class MemPoolIntrospection
 
 /// @brief typedef for the templated mempool introspection class that is used by RouDi for the
 /// actual mempool introspection functionality.
+#if defined(__VMSHM__)
+using MemPoolIntrospectionType =
+    MemPoolIntrospection<mepoo::MemoryManager, mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>, PublisherPortUserType>;
+#else
 using MemPoolIntrospectionType =
     MemPoolIntrospection<mepoo::MemoryManager, mepoo::SegmentManager<>, PublisherPortUserType>;
+#endif
 
 } // namespace roudi
 } // namespace iox

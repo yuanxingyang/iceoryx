@@ -29,6 +29,7 @@ constexpr char APP_NAME[] = "iox-cpp-subscriber";
 
 int main()
 {
+    iox::log::Logger::setLogLevel(iox::log::LogLevel::Trace);
     // initialize runtime
     iox::runtime::PoshRuntime::initRuntime(APP_NAME);
 

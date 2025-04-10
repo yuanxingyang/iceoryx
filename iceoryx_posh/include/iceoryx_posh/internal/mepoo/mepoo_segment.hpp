@@ -26,6 +26,9 @@
 #include "iox/detail/posix_acl.hpp"
 #include "iox/filesystem.hpp"
 #include "iox/posix_group.hpp"
+#if defined(__VMSHM__)
+#include "iox/vm_shared_memory_object.hpp"
+#endif
 #include "iox/posix_shared_memory_object.hpp"
 
 namespace iox
@@ -36,6 +39,7 @@ template <typename SharedMemoryObjectType = PosixSharedMemoryObject, typename Me
 class MePooSegment
 {
   public:
+    using Name_t = string<platform::IOX_MAX_SHM_NAME_LENGTH>;
     MePooSegment(const MePooConfig& mempoolConfig,
                  const DomainId domainId,
                  BumpAllocator& managementAllocator,
@@ -52,6 +56,9 @@ class MePooSegment
 
     uint64_t getSegmentSize() const noexcept;
 
+    uintptr_t getSegmentBaseAddress() const noexcept;
+    string<platform::IOX_MAX_SHM_NAME_LENGTH> getSegmentAndroidAddress() const noexcept;
+
   protected:
     SharedMemoryObjectType createSharedMemoryObject(const MePooConfig& mempoolConfig,
                                                     const DomainId domainId,
@@ -65,6 +72,8 @@ class MePooSegment
     iox::mepoo::MemoryInfo m_memoryInfo;
     SharedMemoryObjectType m_sharedMemoryObject;
     MemoryManagerType m_memoryManager;
+    uintptr_t m_baseAddress;
+    string<platform::IOX_MAX_SHM_NAME_LENGTH> m_androidAddress;
 
     static constexpr access_rights SEGMENT_PERMISSIONS =
         perms::owner_read | perms::owner_write | perms::group_read | perms::group_write;

@@ -207,6 +207,7 @@ iox_add_library(
         source/roudi/memory/mempool_segment_manager_memory_block.cpp
         source/roudi/memory/port_pool_memory_block.cpp
         source/roudi/memory/posix_shm_memory_provider.cpp
+        source/roudi/memory/vm_shm_memory_provider.cpp
         source/roudi/memory/default_roudi_memory.cpp
         source/roudi/memory/roudi_memory_manager.cpp
         source/roudi/memory/iceoryx_roudi_memory_manager.cpp

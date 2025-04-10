@@ -36,6 +36,7 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
                                        {"monitoring-mode", required_argument, nullptr, 'm'},
                                        {"log-level", required_argument, nullptr, 'l'},
                                        {"address", required_argument, nullptr, 'a'},
+                                       {"memory-address", required_argument, nullptr, 'M'},
                                        {"domain-id", required_argument, nullptr, 'd'},
                                        {"unique-roudi-id", required_argument, nullptr, 'u'},
                                        {"compatibility", required_argument, nullptr, 'x'},
@@ -44,7 +45,7 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
                                        {nullptr, 0, nullptr, 0}};
 
     // colon after shortOption means it requires an argument, two colons mean optional argument
-    constexpr const char* SHORT_OPTIONS = "hvm:l:a:d:u:x:t:k:";
+    constexpr const char* SHORT_OPTIONS = "hvm:l:a:M:d:u:x:t:k:";
     int index;
     int32_t opt{-1};
     while ((opt = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, &index), opt != -1))
@@ -58,6 +59,8 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
             std::cout << "-v, --version                     Display version." << std::endl;
             std::cout << "-a, --address                     IP Address,IP:Port" << std::endl;
             std::cout << "                                  __ETHSOCKET__ needs to be defined during compilation" << std::endl;
+            std::cout << "-M, --memory-address              Specify the virtual memory address to process" << std::endl;
+            std::cout << "                                  The address should be in hexadecimal format (e.g., 0x1000)" << std::endl;
             std::cout << "-d, --domain-id <UINT>            Set the Domain ID." << std::endl;
             std::cout << "                                  <UINT> 0..65535" << std::endl;
             std::cout << "                                  Experimental!" << std::endl;
@@ -108,6 +111,17 @@ CmdLineParser::parse(int argc, char* argv[], const CmdLineArgumentParsingMode cm
         case 'a':
                 m_cmdLineArgs.roudiConfig.ipAddress = string<IP_MAX_LENGTH>(TruncateToCapacity,optarg,IP_MAX_LENGTH);
                 break;
+        case 'M':
+        {
+                auto maybeValue = convert::from_string<uintptr_t>(optarg);
+                if (!maybeValue.has_value())
+                {
+                    IOX_LOG(Error, "The memory address must be hexadecimal format (e.g., 0x1000)");
+                    return err(CmdLineParserResult::INVALID_PARAMETER);
+                }
+                m_cmdLineArgs.roudiConfig.managementbaseAddress = maybeValue.value();
+                break;
+        }
         case 'd':
         {
             constexpr uint64_t MAX_DOMAIN_ID = ((1 << 16) - 1);

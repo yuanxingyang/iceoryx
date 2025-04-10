@@ -148,6 +148,9 @@ TomlRouDiConfigFileProvider::parse(std::istream& stream) noexcept
         auto writer = segment->get_as<std::string>("writer").value_or(into<std::string>(groupOfCurrentProcess));
         auto reader = segment->get_as<std::string>("reader").value_or(into<std::string>(groupOfCurrentProcess));
         iox::mepoo::MePooConfig mempoolConfig;
+        mempoolConfig.m_baseAddress = segment->get_as<std::uintptr_t>("baseaddress").value_or(0);
+        mempoolConfig.m_androidAddress = iox::string<platform::IOX_MAX_SHM_NAME_LENGTH>(iox::TruncateToCapacity,(segment->get_as<std::string>("androidaddress").value_or(std::string("bosch_shmem"))).c_str());
+
         auto mempools = segment->get_table_array("mempool");
         if (!mempools)
         {

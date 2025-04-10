@@ -200,7 +200,12 @@ expected<SharedChunk, MemoryManager::Error> MemoryManager::getChunk(const ChunkS
     else
     {
         auto chunkHeader = new (chunk) ChunkHeader(aquiredChunkSize, chunkSettings);
-        auto chunkManagement = new (m_chunkManagementPool.front().getChunk())
+        auto cm = m_chunkManagementPool.front().getChunk();
+        if (cm == nullptr)
+        {
+            return err(Error::NO_MEMPOOL_FOR_REQUESTED_CHUNK_SIZE);
+        }
+        auto chunkManagement = new (cm)
             ChunkManagement(chunkHeader, memPoolPointer, &m_chunkManagementPool.front());
         return ok(SharedChunk(chunkManagement));
     }

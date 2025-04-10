@@ -35,11 +35,13 @@ constexpr access_rights PosixShmMemoryProvider::SHM_MEMORY_PERMISSIONS;
 PosixShmMemoryProvider::PosixShmMemoryProvider(const ShmName_t& shmName,
                                                const DomainId domainId,
                                                const AccessMode accessMode,
-                                               const OpenMode openMode) noexcept
+                                               const OpenMode openMode,
+                                               const uintptr_t mgtbaseAddress) noexcept
     : m_shmName(shmName)
     , m_domainId(domainId)
     , m_accessMode(accessMode)
     , m_openMode(openMode)
+    , m_mgtbaseAddress(mgtbaseAddress)
 {
 }
 

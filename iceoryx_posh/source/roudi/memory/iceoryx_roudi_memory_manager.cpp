@@ -69,7 +69,7 @@ expected<void, RouDiMemoryManagerError> IceOryxRouDiMemoryManager::destroyMemory
     return m_memoryManager.destroyMemory();
 }
 
-const PosixShmMemoryProvider* IceOryxRouDiMemoryManager::mgmtMemoryProvider() const noexcept
+const MemoryProvider* IceOryxRouDiMemoryManager::mgmtMemoryProvider() const noexcept
 {
     return &m_defaultMemory.m_managementShm;
 }
@@ -94,7 +94,12 @@ optional<HeartbeatPool*> IceOryxRouDiMemoryManager::heartbeatPool() const noexce
     return m_defaultMemory.heartbeatPoolBlock.value();
 }
 
+#if defined(__VMSHM__)
+optional<mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>*> 
+IceOryxRouDiMemoryManager::segmentManager() const noexcept
+#else
 optional<mepoo::SegmentManager<>*> IceOryxRouDiMemoryManager::segmentManager() const noexcept
+#endif
 {
     return m_defaultMemory.m_segmentManagerBlock.segmentManager();
 }

@@ -64,7 +64,11 @@ inline int iox_pthread_mutexattr_setprotocol(iox_pthread_mutexattr_t* attr, int 
 
 inline int iox_pthread_mutexattr_setrobust(iox_pthread_mutexattr_t* attr, int robustness)
 {
+#if not defined(__VMSHM__)
     return pthread_mutexattr_setrobust(attr, robustness);
+#else
+    return 0;
+#endif
 }
 
 inline int iox_pthread_mutexattr_setprioceiling(iox_pthread_mutexattr_t* attr, int prioceiling)
@@ -79,7 +83,11 @@ inline int iox_pthread_mutex_init(iox_pthread_mutex_t* mutex, const iox_pthread_
 
 inline int iox_pthread_mutex_destroy(iox_pthread_mutex_t* mutex)
 {
+#if not defined(__VMSHM__)
     return pthread_mutex_destroy(mutex);
+#else
+    return 0;
+#endif
 }
 
 inline int iox_pthread_mutex_lock(iox_pthread_mutex_t* mutex)

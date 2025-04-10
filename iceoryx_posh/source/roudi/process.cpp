@@ -39,12 +39,14 @@ Process::Process(const RuntimeName_t& name,
     , m_user(user)
     , m_sessionId(sessionId)
 {
+#if defined(__ETHSOCKET__)
     if(iox::runtime::RoudiIpcChannelType::ETH_SOCKET == channelType)
     {
         m_ipcChannel = new runtime::IpcInterfaceUser<iox::EthSocket>(name, domainId, ResourceType::USER_DEFINED,
         APP_MAX_MESSAGES, APP_MESSAGE_SIZE, channelType, ipAddress);
     }
     else
+#endif
     {
         m_ipcChannel = new runtime::IpcInterfaceUser<platform::IoxIpcChannelType>(name, domainId, ResourceType::USER_DEFINED);
     }

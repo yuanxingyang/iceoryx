@@ -58,6 +58,8 @@ struct RouDiConfig
 
     IpAdress_t ipAddress {DEFALUT_IP};
 
+    uintptr_t managementbaseAddress;
+
     RouDiConfig& setDefaults() noexcept;
     RouDiConfig& optimize() noexcept;
 };

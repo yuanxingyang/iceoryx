@@ -44,7 +44,8 @@ class PosixShmMemoryProvider : public MemoryProvider
     PosixShmMemoryProvider(const ShmName_t& shmName,
                            const DomainId domainId,
                            const AccessMode accessMode,
-                           const OpenMode openMode) noexcept;
+                           const OpenMode openMode,
+                           const uintptr_t mgtbaseAddress) noexcept;
     ~PosixShmMemoryProvider() noexcept;
 
     PosixShmMemoryProvider(PosixShmMemoryProvider&&) = delete;
@@ -68,6 +69,7 @@ class PosixShmMemoryProvider : public MemoryProvider
     AccessMode m_accessMode{AccessMode::ReadOnly};
     OpenMode m_openMode{OpenMode::OpenExisting};
     optional<PosixSharedMemoryObject> m_shmObject;
+    const uintptr_t m_mgtbaseAddress;
 
     static constexpr access_rights SHM_MEMORY_PERMISSIONS =
         perms::owner_read | perms::owner_write | perms::group_read | perms::group_write;

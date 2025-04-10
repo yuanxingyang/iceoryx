@@ -34,7 +34,9 @@ expected<SharedMemoryUser, SharedMemoryUserError>
 SharedMemoryUser::create(const DomainId domainId,
                          const uint64_t segmentId,
                          const uint64_t managementShmSize,
-                         const UntypedRelativePointer::offset_t segmentManagerAddressOffset) noexcept
+                         const UntypedRelativePointer::offset_t segmentManagerAddressOffset,
+                         const uintptr_t mgtbaseAddress,
+                         string<platform::IOX_MAX_SHM_NAME_LENGTH> androidMgtAddress) noexcept
 {
     ShmVector_t shmSegments;
     ScopeGuard shmCleaner{[] {}, [&shmSegments] { SharedMemoryUser::destroy(shmSegments); }};
@@ -46,7 +48,9 @@ SharedMemoryUser::create(const DomainId domainId,
                                   ResourceType::ICEORYX_DEFINED,
                                   {roudi::SHM_NAME},
                                   managementShmSize,
-                                  AccessMode::ReadWrite);
+                                  AccessMode::ReadWrite,
+                                  mgtbaseAddress,
+                                  androidMgtAddress);
     if (shmOpen.has_error())
     {
         return err(shmOpen.error());
@@ -54,7 +58,11 @@ SharedMemoryUser::create(const DomainId domainId,
 
     // open payload segments
     auto* ptr = UntypedRelativePointer::getPtr(segment_id_t{segmentId}, segmentManagerAddressOffset);
+#if defined(__VMSHM__)
+    auto* segmentManager = static_cast<mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>*>(ptr);
+#else
     auto* segmentManager = static_cast<mepoo::SegmentManager<>*>(ptr);
+#endif
 
     auto segmentMapping = segmentManager->getSegmentMappings(PosixUser::getUserOfCurrentProcess());
     for (const auto& segment : segmentMapping)
@@ -70,7 +78,9 @@ SharedMemoryUser::create(const DomainId domainId,
                                       ResourceType::USER_DEFINED,
                                       segment.m_sharedMemoryName,
                                       segment.m_size,
-                                      segment.m_isWritable ? AccessMode::ReadWrite : AccessMode::ReadOnly);
+                                      segment.m_isWritable ? AccessMode::ReadWrite : AccessMode::ReadOnly,
+                                      segment.m_baseAddress,
+                                      segment.m_androidAddress);
         if (shmOpen.has_error())
         {
             return err(shmOpen.error());
@@ -108,14 +118,36 @@ expected<void, SharedMemoryUserError> SharedMemoryUser::openShmSegment(ShmVector
                                                                        const ResourceType resourceType,
                                                                        const ShmName_t& shmName,
                                                                        const uint64_t shmSize,
-                                                                       const AccessMode accessMode) noexcept
+                                                                       const AccessMode accessMode,
+                                                                       const uintptr_t mgtbaseAddress,
+                                                                       string<platform::IOX_MAX_SHM_NAME_LENGTH> androidAddress) noexcept
 {
+#if defined(__VMSHM__)
+#ifndef __ANDROID_VM_SHM__
+    auto shmResult = VMSharedMemoryObjectBuilder()
+                         .name(concatenate(iceoryxResourcePrefix(domainId, resourceType), shmName))
+                         .baseAddressHint(reinterpret_cast<void *>(mgtbaseAddress))
+                         .memorySizeInBytes(shmSize)
+                         .accessMode(accessMode)
+                         .openMode(OpenMode::OpenExisting)
+                         .create();
+#else
+    auto shmResult = VMSharedMemoryObjectBuilder()
+                         .name(androidAddress)
+                         .baseAddressHint(0x0)
+                         .memorySizeInBytes(shmSize)
+                         .accessMode(accessMode)
+                         .openMode(OpenMode::OpenExisting)
+                         .create();
+#endif
+#else
     auto shmResult = PosixSharedMemoryObjectBuilder()
                          .name(concatenate(iceoryxResourcePrefix(domainId, resourceType), shmName))
                          .memorySizeInBytes(shmSize)
                          .accessMode(accessMode)
                          .openMode(OpenMode::OpenExisting)
                          .create();
+#endif
 
     if (shmResult.has_error())
     {

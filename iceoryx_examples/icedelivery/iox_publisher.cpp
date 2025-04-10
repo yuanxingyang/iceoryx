@@ -53,12 +53,15 @@ int main()
         //  * Retrieve a typed sample from shared memory.
         //  * Sample can be held until ready to publish.
         //  * Data is default constructed during loan
+        //printf("---prepare sent\n");
+        std::cin.get();
         publisher.loan()
             .and_then([&](auto& sample) {
                 sample->x = sampleValue1;
                 sample->y = sampleValue1;
                 sample->z = sampleValue1;
                 sample.publish();
+                std::cout << APP_NAME << " -----sent values: " << sampleValue1 <<std::endl;
             })
             .or_else([](auto& error) {
                 // Do something with error
@@ -67,6 +70,7 @@ int main()
         //! [API Usage #1]
 
 
+        /*
         //! [API Usage #2]
         //  * Retrieve a typed sample from shared memory and construct data in-place
         //  * Sample can be held until ready to publish.
@@ -111,6 +115,7 @@ int main()
                   << ", " << ct << ", " << sampleValue4 << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        */
     }
 
     return 0;

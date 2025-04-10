@@ -29,9 +29,16 @@
 
 namespace iox
 {
+#if defined(__VMSHM__)
+class VMSharedMemoryObject;
+#endif
 namespace roudi
 {
 class MemoryProvider;
+#if defined(__VMSHM__)
+template <typename SegmentType>
+class MemPoolSegmentManager;
+#endif
 
 class RouDiMemoryInterface
 {
@@ -55,12 +62,16 @@ class RouDiMemoryInterface
     /// MemoryBlocks to destroy their data
     virtual expected<void, RouDiMemoryManagerError> destroyMemory() noexcept = 0;
 
-    virtual const PosixShmMemoryProvider* mgmtMemoryProvider() const noexcept = 0;
+    virtual const MemoryProvider* mgmtMemoryProvider() const noexcept = 0;
     virtual optional<PortPool*> portPool() noexcept = 0;
     virtual optional<mepoo::MemoryManager*> introspectionMemoryManager() const noexcept = 0;
     virtual optional<mepoo::MemoryManager*> discoveryMemoryManager() const noexcept = 0;
     virtual optional<HeartbeatPool*> heartbeatPool() const noexcept = 0;
+    #if defined(__VMSHM__)
+    virtual optional<mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>*> segmentManager() const noexcept = 0;
+    #else
     virtual optional<mepoo::SegmentManager<>*> segmentManager() const noexcept = 0;
+    #endif
 };
 } // namespace roudi
 } // namespace iox

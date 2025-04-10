@@ -52,12 +52,16 @@ class IceOryxRouDiMemoryManager : public RouDiMemoryInterface
     /// MemoryBlocks to destroy their data
     expected<void, RouDiMemoryManagerError> destroyMemory() noexcept override;
 
-    const PosixShmMemoryProvider* mgmtMemoryProvider() const noexcept override;
+    const MemoryProvider* mgmtMemoryProvider() const noexcept override;
     optional<PortPool*> portPool() noexcept override;
     optional<mepoo::MemoryManager*> introspectionMemoryManager() const noexcept override;
     optional<mepoo::MemoryManager*> discoveryMemoryManager() const noexcept override;
     optional<HeartbeatPool*> heartbeatPool() const noexcept override;
+    #if defined(__VMSHM__)
+    optional<mepoo::SegmentManager<mepoo::MePooSegment<iox::VMSharedMemoryObject,mepoo::MemoryManager>>*> segmentManager() const noexcept override;
+    #else
     optional<mepoo::SegmentManager<>*> segmentManager() const noexcept override;
+    #endif
 
   private:
     // in order to prevent a second RouDi to cleanup the memory resources of a running RouDi, this resources are

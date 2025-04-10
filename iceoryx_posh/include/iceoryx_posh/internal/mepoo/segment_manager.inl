@@ -71,6 +71,7 @@ SegmentManager<SegmentType>::getSegmentMappings(const PosixUser& user) noexcept
     SegmentManager::SegmentMappingContainer mappingContainer;
     bool foundInWriterGroup = false;
 
+
     // with the groups we can get all the segments (read or write) for the user
     for (const auto& groupID : groupContainer)
     {
@@ -83,7 +84,7 @@ SegmentManager<SegmentType>::getSegmentMappings(const PosixUser& user) noexcept
                 if (!foundInWriterGroup)
                 {
                     mappingContainer.emplace_back(
-                        segment.getWriterGroup().getName(), segment.getSegmentSize(), true, segment.getSegmentId());
+                        segment.getWriterGroup().getName(), segment.getSegmentSize(), true, segment.getSegmentId(), segment.getSegmentBaseAddress(), segment.getSegmentAndroidAddress());
                     foundInWriterGroup = true;
                 }
                 else
@@ -106,7 +107,7 @@ SegmentManager<SegmentType>::getSegmentMappings(const PosixUser& user) noexcept
                    }) == mappingContainer.end())
             {
                 mappingContainer.emplace_back(
-                    segment.getWriterGroup().getName(), segment.getSegmentSize(), false, segment.getSegmentId());
+                    segment.getWriterGroup().getName(), segment.getSegmentSize(), false, segment.getSegmentId(), segment.getSegmentBaseAddress(), segment.getSegmentAndroidAddress());
             }
         }
     }

@@ -17,10 +17,14 @@
 #define IOX_POSH_ROUDI_MEMORY_DEFAULT_ROUDI_MEMORY_HPP
 
 #include "iceoryx_posh/internal/roudi/memory/mempool_collection_memory_block.hpp"
-#include "iceoryx_posh/internal/roudi/memory/mempool_segment_manager_memory_block.hpp"
+#include "iceoryx_posh/internal/roudi/memory/mempool_segment_manager.hpp"
 #include "iceoryx_posh/roudi/heartbeat_pool.hpp"
 #include "iceoryx_posh/roudi/memory/generic_memory_block.hpp"
+#if defined(__VMSHM__)
+#include "iceoryx_posh/roudi/memory/vm_shm_memory_provider.hpp"
+#else
 #include "iceoryx_posh/roudi/memory/posix_shm_memory_provider.hpp"
+#endif
 
 namespace iox
 {
@@ -41,8 +45,13 @@ struct DefaultRouDiMemory
     MemPoolCollectionMemoryBlock m_introspectionMemPoolBlock;
     MemPoolCollectionMemoryBlock m_discoveryMemPoolBlock;
     GenericMemoryBlock<HeartbeatPool> heartbeatPoolBlock;
-    MemPoolSegmentManagerMemoryBlock m_segmentManagerBlock;
+    #if defined(__VMSHM__)
+    MemPoolSegmentManager<mepoo::MePooSegment<VMSharedMemoryObject,mepoo::MemoryManager>> m_segmentManagerBlock;
+    VMShmMemoryProvider m_managementShm;
+    #else
+    MemPoolSegmentManager<mepoo::MePooSegment<PosixSharedMemoryObject,mepoo::MemoryManager>> m_segmentManagerBlock;
     PosixShmMemoryProvider m_managementShm;
+    #endif
 
   private:
     mepoo::MePooConfig introspectionMemPoolConfig(const uint32_t chunkCount) const noexcept;

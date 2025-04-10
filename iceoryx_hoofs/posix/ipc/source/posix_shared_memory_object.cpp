@@ -104,6 +104,7 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
         return err(PosixSharedMemoryObjectError::UNABLE_TO_VERIFY_MEMORY_SIZE);
     }
 
+#ifndef __ANDROID_VM_SHM__
     const auto realSize = *realSizeResult;
     if (realSize < m_memorySizeInBytes)
     {
@@ -113,6 +114,9 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
                     << m_memorySizeInBytes << " was requested but the object has only a size of " << realSize);
         return err(PosixSharedMemoryObjectError::REQUESTED_SIZE_EXCEEDS_ACTUAL_SIZE);
     }
+#else
+    const auto realSize = m_memorySizeInBytes;
+#endif
 
     auto memoryMap = detail::PosixMemoryMapBuilder()
                          .baseAddressHint((m_baseAddressHint) ? *m_baseAddressHint : nullptr)
@@ -169,13 +173,26 @@ expected<PosixSharedMemoryObject, PosixSharedMemoryObjectError> PosixSharedMemor
                 "Acquired " << m_memorySizeInBytes << " bytes successfully in the shared memory [" << m_name << "]");
     }
 
+#ifndef __ANDROID_VM_SHM__ //workaround
     return ok(PosixSharedMemoryObject(std::move(*sharedMemory), std::move(*memoryMap)));
+#else
+    return ok(PosixSharedMemoryObject(std::move(*sharedMemory), std::move(*memoryMap), m_memorySizeInBytes));
+#endif
 }
 
+#ifndef __ANDROID_VM_SHM__ //workaround
 PosixSharedMemoryObject::PosixSharedMemoryObject(detail::PosixSharedMemory&& sharedMemory,
                                                  detail::PosixMemoryMap&& memoryMap) noexcept
     : m_sharedMemory(std::move(sharedMemory))
     , m_memoryMap(std::move(memoryMap))
+#else
+PosixSharedMemoryObject::PosixSharedMemoryObject(detail::PosixSharedMemory&& sharedMemory,
+                                                 detail::PosixMemoryMap&& memoryMap,
+                                                 uint64_t memorySize) noexcept
+    : m_sharedMemory(std::move(sharedMemory))
+    , m_memoryMap(std::move(memoryMap))
+    , m_memorySize(memorySize)
+#endif
 {
 }
 
@@ -203,4 +220,10 @@ bool PosixSharedMemoryObject::hasOwnership() const noexcept
 {
     return m_sharedMemory.hasOwnership();
 }
+#ifdef __ANDROID_VM_SHM__  //workaround
+expected<uint64_t, FileStatError> PosixSharedMemoryObject::get_size() const noexcept
+{
+    return ok(static_cast<uint64_t>(m_memorySize));
+}
+#endif
 } // namespace iox

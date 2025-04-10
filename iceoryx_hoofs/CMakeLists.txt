@@ -35,6 +35,19 @@ endif()
 
 set(PREFIX iceoryx/v${CMAKE_PROJECT_VERSION})
 
+if(VMSHM STREQUAL "ON")
+    list(APPEND EXT_FEATURES
+        posix/ipc/source/vm_memory_map.cpp
+        posix/ipc/source/vm_shared_memory.cpp
+        posix/ipc/source/vm_shared_memory_object.cpp
+    )
+endif()
+
+if(ETHSOCKET STREQUAL "ON")
+    list(APPEND EXT_FEATURES
+        posix/ipc/source/eth_socket.cpp
+    )
+endif()
 #
 ########## build iceoryx hoofs lib ##########
 #
@@ -129,7 +142,6 @@ iox_add_library(
         posix/ipc/source/posix_shared_memory.cpp
         posix/ipc/source/posix_shared_memory_object.cpp
         posix/ipc/source/unix_domain_socket.cpp
-        posix/ipc/source/eth_socket.cpp
         posix/filesystem/source/file.cpp
         posix/filesystem/source/file_lock.cpp
         posix/filesystem/source/posix_acl.cpp
@@ -149,6 +161,7 @@ iox_add_library(
         posix/vocabulary/source/group_name.cpp
         posix/vocabulary/source/path.cpp
         posix/vocabulary/source/user_name.cpp
+        ${EXT_FEATURES}
 )
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/iceoryx_hoofs_deployment.hpp.in"

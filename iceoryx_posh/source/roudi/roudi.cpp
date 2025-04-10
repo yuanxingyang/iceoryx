@@ -40,11 +40,21 @@ RouDi::RouDi(RouDiMemoryInterface& roudiMemoryInterface,
     , m_runHandleRuntimeMessageThread(true)
     , m_roudiMemoryInterface(&roudiMemoryInterface)
     , m_portManager(&portManager)
+#if defined(__VMSHM__)
+    , m_prcMgr(concurrent::ForwardArgsToCTor,
+               *m_roudiMemoryInterface,
+               portManager,
+               m_roudiConfig.domainId,
+               m_roudiConfig.compatibilityCheckLevel,
+               m_roudiConfig.managementbaseAddress,
+               "bosch_shmem_0")
+#else
     , m_prcMgr(concurrent::ForwardArgsToCTor,
                *m_roudiMemoryInterface,
                portManager,
                m_roudiConfig.domainId,
                m_roudiConfig.compatibilityCheckLevel)
+#endif
     , m_mempoolIntrospection(
           *m_roudiMemoryInterface->introspectionMemoryManager().value(),
           *m_roudiMemoryInterface->segmentManager().value(),

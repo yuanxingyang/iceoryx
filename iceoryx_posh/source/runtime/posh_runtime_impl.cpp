@@ -91,10 +91,37 @@ PoshRuntimeImpl::PoshRuntimeImpl(optional<const RuntimeName_t*> name,
         // not desired; therefore open the shm segments only when the runtime lives in a different process from RouDi
         if (location == RuntimeLocation::SEPARATE_PROCESS_FROM_ROUDI)
         {
+
+#if defined(__VMSHM__)
+#ifndef __ANDROID_VM_SHM__
+            auto shmInterfaceResult = SharedMemoryUser::create(domainId,
+                                                               runtimeInterface.getSegmentId(),
+                                                               runtimeInterface.getShmTopicSize(),
+                                                               runtimeInterface.getSegmentManagerAddressOffset(),
+                                                               runtimeInterface.getMgtBaseAddress());
+#else
+            auto shmInterfaceResult = SharedMemoryUser::create(domainId,
+                                                               runtimeInterface.getSegmentId(),
+                                                               runtimeInterface.getShmTopicSize(),
+                                                               runtimeInterface.getSegmentManagerAddressOffset(),
+                                                               0x0,
+                                                               runtimeInterface.getAndroidMgtAddress());
+#endif
+#else
+#ifndef __ANDROID_VM_SHM__
             auto shmInterfaceResult = SharedMemoryUser::create(domainId,
                                                                runtimeInterface.getSegmentId(),
                                                                runtimeInterface.getShmTopicSize(),
                                                                runtimeInterface.getSegmentManagerAddressOffset());
+#else
+            auto shmInterfaceResult = SharedMemoryUser::create(domainId,
+                                                               runtimeInterface.getSegmentId(),
+                                                               runtimeInterface.getShmTopicSize(),
+                                                               runtimeInterface.getSegmentManagerAddressOffset(),
+                                                               0x0,
+                                                               runtimeInterface.getAndroidMgtAddress());
+#endif
+#endif
 
             if (shmInterfaceResult.has_error())
             {

@@ -41,11 +41,15 @@ namespace roudi
 ProcessManager::ProcessManager(RouDiMemoryInterface& roudiMemoryInterface,
                                PortManager& portManager,
                                const DomainId domainId,
-                               const version::CompatibilityCheckLevel compatibilityCheckLevel) noexcept
+                               const version::CompatibilityCheckLevel compatibilityCheckLevel,
+                               uintptr_t mgtbaseAddress,
+                               std::string androidMgrAddress) noexcept
     : m_roudiMemoryInterface(roudiMemoryInterface)
     , m_portManager(portManager)
     , m_domainId(domainId)
     , m_compatibilityCheckLevel(compatibilityCheckLevel)
+    , m_mgtbaseAddress(mgtbaseAddress)
+    , m_AndroidMgrAddress(androidMgrAddress)
 {
     bool fatalError{false};
 
@@ -316,7 +320,7 @@ bool ProcessManager::addProcess(const RuntimeName_t& name,
     auto segmentManagerOffset = UntypedRelativePointer::getOffset(segment_id_t{m_mgmtSegmentId}, m_segmentManager);
     sendBuffer << runtime::IpcMessageTypeToString(runtime::IpcMessageType::REG_ACK)
                << m_roudiMemoryInterface.mgmtMemoryProvider()->size() << segmentManagerOffset << transmissionTimestamp
-               << m_mgmtSegmentId << heartbeatOffset;
+               << m_mgmtSegmentId << heartbeatOffset << m_mgtbaseAddress << m_AndroidMgrAddress;
 
     m_processList.back().sendViaIpcChannel(sendBuffer);
 

@@ -39,7 +39,7 @@ configure_option(
     DEFAULT_VALUE "/etc/"
 )
 
-option(IOX_PLATFORM_FEATURE_ACL "Use ACLs for access control" ON)
+option(IOX_PLATFORM_FEATURE_ACL "Use ACLs for access control" OFF)
 message(STATUS "[i] IOX_PLATFORM_FEATURE_ACL: ${IOX_PLATFORM_FEATURE_ACL}")
 
 message(STATUS "[i] <<<<<<<<<<<<<< End iceoryx_platform configuration: >>>>>>>>>>>>>>")

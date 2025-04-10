@@ -21,7 +21,11 @@
 #include "iox/builder.hpp"
 #include "iox/filesystem.hpp"
 #include "iox/optional.hpp"
+#if defined(__VMSHM__)
+#include "iox/vm_shared_memory_object.hpp"
+#else
 #include "iox/posix_shared_memory_object.hpp"
+#endif
 #include "iox/relative_pointer.hpp"
 #include "iox/vector.hpp"
 
@@ -42,7 +46,11 @@ class SharedMemoryUser
 {
   private:
     static constexpr uint32_t NUMBER_OF_ALL_SHM_SEGMENTS{1 /* management shm */ + MAX_SHM_SEGMENTS /* payload shm */};
+#if defined(__VMSHM__)
+    using ShmVector_t = vector<VMSharedMemoryObject, NUMBER_OF_ALL_SHM_SEGMENTS>;
+#else
     using ShmVector_t = vector<PosixSharedMemoryObject, NUMBER_OF_ALL_SHM_SEGMENTS>;
+#endif
 
   public:
     /// @brief Creates a 'SharedMemoryUser'
@@ -56,7 +64,9 @@ class SharedMemoryUser
     create(const DomainId domainId,
            const uint64_t segmentId,
            const uint64_t managementShmSize,
-           const UntypedRelativePointer::offset_t segmentManagerAddressOffset) noexcept;
+           const UntypedRelativePointer::offset_t segmentManagerAddressOffset,
+           const uintptr_t mgtbaseAddress = 0x0,
+           string<platform::IOX_MAX_SHM_NAME_LENGTH> androidMgtAddress = "/dev/bosch_shmem") noexcept;
 
     ~SharedMemoryUser() noexcept;
 
@@ -77,7 +87,9 @@ class SharedMemoryUser
                                                                 const ResourceType resourceType,
                                                                 const ShmName_t& shmName,
                                                                 const uint64_t shmSize,
-                                                                const AccessMode accessMode) noexcept;
+                                                                const AccessMode accessMode,
+                                                                const uintptr_t mgtbaseAddress = 0x0,
+                                                                string<platform::IOX_MAX_SHM_NAME_LENGTH> androidMgtAddress = "/dev/bosch_shmem") noexcept;
 
 
   private:

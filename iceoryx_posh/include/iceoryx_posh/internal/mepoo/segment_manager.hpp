@@ -60,11 +60,15 @@ class SegmentManager
                        uint64_t size,
                        bool isWritable,
                        uint64_t segmentId,
+                       uintptr_t baseAddress,
+                       string<platform::IOX_MAX_SHM_NAME_LENGTH> androidAddress,
                        const iox::mepoo::MemoryInfo& memoryInfo = iox::mepoo::MemoryInfo()) noexcept
             : m_sharedMemoryName(sharedMemoryName)
             , m_size(size)
             , m_isWritable(isWritable)
             , m_segmentId(segmentId)
+            , m_baseAddress(baseAddress)
+            , m_androidAddress(androidAddress)
             , m_memoryInfo(memoryInfo)
 
         {
@@ -74,6 +78,8 @@ class SegmentManager
         uint64_t m_size{0};
         bool m_isWritable{false};
         uint64_t m_segmentId{0};
+        uintptr_t m_baseAddress{0};
+        string<platform::IOX_MAX_SHM_NAME_LENGTH> m_androidAddress;
         iox::mepoo::MemoryInfo m_memoryInfo; // we can specify additional info about a segments memory here
     };
 
@@ -103,7 +109,6 @@ class SegmentManager
     vector<SegmentType, MAX_SHM_SEGMENTS> m_segmentContainer;
     bool m_createInterfaceEnabled{true};
 };
-
 
 } // namespace mepoo
 } // namespace iox

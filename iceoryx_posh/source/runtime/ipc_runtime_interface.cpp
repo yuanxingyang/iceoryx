@@ -45,6 +45,7 @@ expected<IpcRuntimeInterface, IpcRuntimeInterfaceError> IpcRuntimeInterface::cre
     IIpcInterface* roudiIpcInterface = nullptr;
     IIpcInterface* appIpcInterface = nullptr;
 
+#if defined(__ETHSOCKET__)
     if (RoudiIpcChannelType::ETH_SOCKET == channelType)
     {
         roudiIpcInterface = new IpcInterfaceUser<iox::EthSocket>(runtimeName, domainId, 
@@ -57,6 +58,7 @@ expected<IpcRuntimeInterface, IpcRuntimeInterfaceError> IpcRuntimeInterface::cre
         }
     }
     else
+#endif
     {
         roudiIpcInterface = new IpcInterfaceUser<platform::IoxIpcChannelType>(roudi::IPC_CHANNEL_ROUDI_NAME, domainId, ResourceType::ICEORYX_DEFINED);
         auto interface = IpcInterfaceCreator<platform::IoxIpcChannelType>::create(runtimeName, domainId, ResourceType::USER_DEFINED);
@@ -276,7 +278,7 @@ IpcRuntimeInterface::waitForRegAck(int64_t transmissionTimestamp,
 
             if (stringToIpcMessageType(cmd.c_str()) == IpcMessageType::REG_ACK)
             {
-                constexpr uint32_t REGISTER_ACK_PARAMETERS = 6U;
+                constexpr uint32_t REGISTER_ACK_PARAMETERS = 8U;
                 if (receiveBuffer.getNumberOfElements() != REGISTER_ACK_PARAMETERS)
                 {
                     IOX_REPORT_FATAL(PoshError::IPC_INTERFACE__REG_ACK_INVALIG_NUMBER_OF_PARAMS);
@@ -297,6 +299,14 @@ IpcRuntimeInterface::waitForRegAck(int64_t transmissionTimestamp,
                     iox::convert::from_string<uint64_t>(receiveBuffer.getElementAtIndex(4U).c_str());
                 auto heartbeat_offset_result =
                     iox::convert::from_string<uint64_t>(receiveBuffer.getElementAtIndex(5U).c_str());
+#if defined(__VMSHM__)
+                auto mgt_base_address_result =
+                    iox::convert::from_string<uintptr_t>(receiveBuffer.getElementAtIndex(6U).c_str());
+#endif
+#if defined(__ANDROID_VM_SHM__)
+                auto android_mgt_base_address_result =
+                    iox::convert::from_string<std::string>(receiveBuffer.getElementAtIndex(7U).c_str());
+#endif
 
                 // validate conversion results
                 if (!topic_size_result.has_value() || !segment_manager_offset_result.has_value()
@@ -312,6 +322,12 @@ IpcRuntimeInterface::waitForRegAck(int64_t transmissionTimestamp,
                 segmentManagerOffset = segment_manager_offset_result.value();
                 receivedTimestamp = recv_timestamp_result.value();
                 heartbeatOffset = heartbeat_offset_result.value();
+#if defined(__VMSHM__)
+                mgmtShmCharacteristics.mgtbaseAddress = mgt_base_address_result.value();
+#endif
+#if defined(__ANDROID_VM_SHM__)
+                mgmtShmCharacteristics.androidMgtAddress = iox::string<platform::IOX_MAX_SHM_NAME_LENGTH>(iox::TruncateToCapacity,android_mgt_base_address_result.value().c_str());
+#endif
 
                 mgmtShmCharacteristics.segmentManagerAddressOffset = segmentManagerOffset;
 
@@ -348,6 +364,19 @@ optional<UntypedRelativePointer::offset_t> IpcRuntimeInterface::getHeartbeatAddr
 {
     return m_mgmtShmCharacteristics.heartbeatAddressOffset;
 }
+
+#if defined(__VMSHM__)
+uintptr_t IpcRuntimeInterface::getMgtBaseAddress() const noexcept
+{
+    return m_mgmtShmCharacteristics.mgtbaseAddress;
+}
+#endif
+#if defined(__ANDROID_VM_SHM__)
+string<platform::IOX_MAX_SHM_NAME_LENGTH> IpcRuntimeInterface::getAndroidMgtAddress() const noexcept
+{
+    return m_mgmtShmCharacteristics.androidMgtAddress;
+}
+#endif
 
 } // namespace runtime
 } // namespace iox

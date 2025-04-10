@@ -47,7 +47,10 @@ inline MePooSegment<SharedMemoryObjectType, MemoryManagerType>::MePooSegment(
     , m_writerGroup(writerGroup)
     , m_memoryInfo(memoryInfo)
     , m_sharedMemoryObject(createSharedMemoryObject(mempoolConfig, domainId, writerGroup))
+    , m_baseAddress(mempoolConfig.m_baseAddress)
+    , m_androidAddress(mempoolConfig.m_androidAddress)
 {
+#if not defined(__VMSHM__)
     using namespace detail;
     PosixAcl acl;
     if (!(readerGroup == writerGroup))
@@ -63,6 +66,7 @@ inline MePooSegment<SharedMemoryObjectType, MemoryManagerType>::MePooSegment(
     {
         IOX_REPORT_FATAL(PoshError::MEPOO__SEGMENT_COULD_NOT_APPLY_POSIX_RIGHTS_TO_SHARED_MEMORY);
     }
+#endif
 
     BumpAllocator allocator(m_sharedMemoryObject.getBaseAddress(),
                             m_sharedMemoryObject.get_size().expect("Failed to get SHM size."));
@@ -75,6 +79,7 @@ inline SharedMemoryObjectType MePooSegment<SharedMemoryObjectType, MemoryManager
 {
     return std::move(
         typename SharedMemoryObjectType::Builder()
+#ifndef __ANDROID_VM_SHM__
             .name([&domainId, &writerGroup] {
                 using ShmName_t = detail::PosixSharedMemory::Name_t;
                 ShmName_t shmName = iceoryxResourcePrefix(domainId, ResourceType::USER_DEFINED);
@@ -90,7 +95,11 @@ inline SharedMemoryObjectType MePooSegment<SharedMemoryObjectType, MemoryManager
                 shmName.append(TruncateToCapacity, writerGroup.getName());
                 return shmName;
             }())
+#else
+            .name(iox::string<128>(TruncateToCapacity,mempoolConfig.m_androidAddress.c_str()))
+#endif
             .memorySizeInBytes(MemoryManager::requiredChunkMemorySize(mempoolConfig))
+            .baseAddressHint(reinterpret_cast<const void*>(mempoolConfig.m_baseAddress))
             .accessMode(AccessMode::ReadWrite)
             .openMode(OpenMode::PurgeAndCreate)
             .permissions(SEGMENT_PERMISSIONS)
@@ -143,6 +152,18 @@ template <typename SharedMemoryObjectType, typename MemoryManagerType>
 inline uint64_t MePooSegment<SharedMemoryObjectType, MemoryManagerType>::getSegmentSize() const noexcept
 {
     return m_segmentSize;
+}
+
+template <typename SharedMemoryObjectType, typename MemoryManagerType>
+inline uintptr_t MePooSegment<SharedMemoryObjectType, MemoryManagerType>::getSegmentBaseAddress() const noexcept
+{
+    return m_baseAddress;
+}
+
+template <typename SharedMemoryObjectType, typename MemoryManagerType>
+inline string<platform::IOX_MAX_SHM_NAME_LENGTH> MePooSegment<SharedMemoryObjectType, MemoryManagerType>::getSegmentAndroidAddress() const noexcept
+{
+    return m_androidAddress;
 }
 
 } // namespace mepoo

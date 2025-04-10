@@ -46,6 +46,8 @@ struct MePooConfig
 
     using MePooConfigContainerType = vector<Entry, MAX_NUMBER_OF_MEMPOOLS>;
     MePooConfigContainerType m_mempoolConfig;
+    uintptr_t m_baseAddress;
+    string<platform::IOX_MAX_SHM_NAME_LENGTH> m_androidAddress;
 
     /// @brief Default constructor to set the configuration for memory pools
     MePooConfig() noexcept = default;

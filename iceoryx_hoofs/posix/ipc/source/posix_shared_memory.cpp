@@ -32,10 +32,15 @@ namespace iox
 {
 namespace detail
 {
-string<PosixSharedMemory::Name_t::capacity() + 1> addLeadingSlash(const PosixSharedMemory::Name_t& name) noexcept
+static string<PosixSharedMemory::Name_t::capacity() + 1> addLeadingSlash(const PosixSharedMemory::Name_t& name) noexcept
 {
+#ifndef __ANDROID_VM_SHM__
     string<PosixSharedMemory::Name_t::capacity() + 1> nameWithLeadingSlash = "/";
     nameWithLeadingSlash.append(TruncateToCapacity, name);
+#else
+    string<PosixSharedMemory::Name_t::capacity() + 1> nameWithLeadingSlash = "/dev/";
+    nameWithLeadingSlash.append(TruncateToCapacity, name);
+#endif
     return nameWithLeadingSlash;
 }
 

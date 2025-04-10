@@ -78,10 +78,17 @@ class PosixSharedMemoryObject : public FileManagementInterface<PosixSharedMemory
     ///        existing shared memory was opened.
     bool hasOwnership() const noexcept;
 
+#ifdef __ANDROID_VM_SHM__  //workaround
+    expected<uint64_t, FileStatError> get_size() const noexcept;
+#endif
     friend class PosixSharedMemoryObjectBuilder;
 
   private:
+#ifndef __ANDROID_VM_SHM__ //workaround
     PosixSharedMemoryObject(detail::PosixSharedMemory&& sharedMemory, detail::PosixMemoryMap&& memoryMap) noexcept;
+#else
+    PosixSharedMemoryObject(detail::PosixSharedMemory&& sharedMemory, detail::PosixMemoryMap&& memoryMap, uint64_t memorySize) noexcept;
+#endif
 
     friend struct FileManagementInterface<PosixSharedMemoryObject>;
     shm_handle_t get_file_handle() const noexcept;
@@ -89,6 +96,9 @@ class PosixSharedMemoryObject : public FileManagementInterface<PosixSharedMemory
   private:
     detail::PosixSharedMemory m_sharedMemory;
     detail::PosixMemoryMap m_memoryMap;
+#ifdef __ANDROID_VM_SHM__ //workaround
+    uint64_t m_memorySize;
+#endif
 };
 
 class PosixSharedMemoryObjectBuilder
