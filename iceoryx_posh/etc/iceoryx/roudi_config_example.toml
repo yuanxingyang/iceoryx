@@ -1,12 +1,12 @@
 # Adapt this config to your needs and rename it to e.g. roudi_config.toml
 [general]
 version = 1
-android_mgraddress = "bosch_shmem_1"
+android_mgraddress = "bosch_shmem_0"
 
 [[segment]]
-baseaddress = 0xc0800000
-androidaddress = "bosch_shmem_0"
+baseaddress = 0x18ea00000
+androidaddress = "bosch_shmem_1"
 
 [[segment.mempool]]
-size = 64
-count = 5
+size = 4176
+count = 3821

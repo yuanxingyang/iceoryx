@@ -19,10 +19,15 @@
 
 #include <cstdint>
 
-//! [request]
 struct DataBuffer
 {
     uint8_t data[4096] = {0};
+};
+//! [request]
+struct AddRequest
+{
+    uint64_t augend{0};
+    uint64_t addend{0};
 };
 //! [request]
 

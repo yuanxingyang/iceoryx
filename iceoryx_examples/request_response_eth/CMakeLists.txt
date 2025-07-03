@@ -28,6 +28,8 @@ include(IceoryxPackageHelper)
 include(IceoryxPlatform)
 include(IceoryxPlatformSettings)
 
+
+
 iox_add_executable(
     TARGET  iox-cpp-request-response-basic-client-eth
     FILES   ./client_cxx_basic.cpp
@@ -37,5 +39,17 @@ iox_add_executable(
 iox_add_executable(
     TARGET  iox-cpp-request-response-basic-server-eth
     FILES   ./server_cxx_basic.cpp
+    LIBS    iceoryx_posh::iceoryx_posh
+)
+
+iox_add_executable(
+    TARGET  iox-cpp-request-response-waitset-client-eth
+    FILES   ./client_cxx_waitset.cpp
+    LIBS    iceoryx_posh::iceoryx_posh
+)
+
+iox_add_executable(
+    TARGET  iox-cpp-request-response-listener-server-eth
+    FILES   ./server_cxx_listener.cpp
     LIBS    iceoryx_posh::iceoryx_posh
 )

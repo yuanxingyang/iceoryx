@@ -118,10 +118,10 @@ void doPrintInfo()
 
 int main(int argc, char** argv)
 {
-    uint32_t block_size = strtoul(argv[1],nullptr,10);
-    uint32_t burst_size = strtoul(argv[2],nullptr,10);
-    uint32_t delay = strtoul(argv[3],nullptr,10);
-    uint32_t delay_ = strtoul(argv[4],nullptr,10);
+    //uint32_t block_size = strtoul(argv[1],nullptr,10);
+    //uint32_t burst_size = strtoul(argv[2],nullptr,10);
+    //uint32_t delay = strtoul(argv[1],nullptr,10);
+    iox::log::Logger::setLogLevel(iox::log::LogLevel::Trace);
 
     std::thread t(doPrintInfo);
     //! [initialize runtime]
@@ -147,7 +147,11 @@ int main(int argc, char** argv)
                 request.getRequestHeader().setSequenceId(requestSequenceId);
                 expectedResponseSequenceId = requestSequenceId;
                 requestSequenceId += 1;
+                //auto current_clock = clock_type::now();
                 memset(request->data,1,sizeof(request->data));
+                //auto end_clock = clock_type::now();
+                //uint64_t interval = std::chrono::duration_cast<std::chrono::nanoseconds>(current_clock - end_clock).count();
+                //std::cout << "memset cost :" << interval << "microseconds" << std::endl;
                 //request->addend = fibonacciCurrent;
                 //std::cout << APP_NAME << " Send Request: " << fibonacciLast << " + " << fibonacciCurrent << std::endl;
                 incrementSend(sizeof(request->data));
@@ -160,12 +164,14 @@ int main(int argc, char** argv)
         // the client polls with an interval of 150ms
         //constexpr std::chrono::milliseconds DELAY_TIME{150U};
         //std::this_thread::sleep_for(DELAY_TIME);
-        if(delay_)
+        /*
+        if(delay)
         {
             //constexpr std::chrono::milliseconds SLEEP_TIME{950U};
-            std::chrono::microseconds SLEEP_TIME{delay_};
+            std::chrono::microseconds SLEEP_TIME{delay};
             std::this_thread::sleep_for(SLEEP_TIME);
         }
+        */
 
         //! [take response]
         while (client.take().and_then([&](const auto& response) {
@@ -187,13 +193,6 @@ int main(int argc, char** argv)
         }))
         {
         };
-        //! [take response]
-        if(delay)
-        {
-            //constexpr std::chrono::milliseconds SLEEP_TIME{950U};
-            std::chrono::microseconds SLEEP_TIME{delay};
-            std::this_thread::sleep_for(SLEEP_TIME);
-        }
 
         //constexpr std::chrono::milliseconds SLEEP_TIME{950U};
         //std::this_thread::sleep_for(SLEEP_TIME);

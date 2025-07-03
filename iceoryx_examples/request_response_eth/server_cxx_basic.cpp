@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
             server.loan(request)
                 .and_then([&](auto& response) {
                     //response->sum = request->augend + request->addend;
-                    std::memcpy(response->data,request->data,sizeof(request));
+                    std::memcpy(response->data,request->data,sizeof(request->data));
                     
                     response.send().or_else(
                         [&](auto& error) { std::cout << "Could not send Response! Error: " << error << std::endl; });
@@ -63,8 +63,11 @@ int main(int argc, char* argv[])
         });
         //! [take request]
 
-        std::chrono::microseconds SLEEP_TIME{delay};
-        std::this_thread::sleep_for(SLEEP_TIME);
+        if(delay)
+        {
+            std::chrono::microseconds SLEEP_TIME{delay};
+            std::this_thread::sleep_for(SLEEP_TIME);
+        }
         //constexpr std::chrono::milliseconds SLEEP_TIME{100U};
         //std::this_thread::sleep_for(SLEEP_TIME);
     }
