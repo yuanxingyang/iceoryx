@@ -133,7 +133,7 @@ configure_option(
 )
 configure_option(
     NAME IOX_MAX_NUMBER_OF_NOTIFIERS
-    DEFAULT_VALUE 1
+    DEFAULT_VALUE 10
 )
 configure_option(
     NAME IOX_MAX_REQUESTS_PROCESSED_SIMULTANEOUSLY

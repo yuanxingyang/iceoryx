@@ -119,6 +119,8 @@ int main(int argc, char** argv)
             if (notification->doesOriginateFrom(&client))
             {
                 //! [take response]
+                bool has_response = false;
+                uint32_t data_size = 0;
                 while (client.take().and_then([&](const auto& response) {
                     auto receivedSequenceId = response.getResponseHeader().getSequenceId();
                     if (receivedSequenceId == ctx.expectedResponseSequenceId)
@@ -126,11 +128,13 @@ int main(int argc, char** argv)
                         //ctx.fibonacciLast = ctx.fibonacciCurrent;
                         //ctx.fibonacciCurrent = response->sum;
                         //std::cout << APP_NAME << " Got Response : " << ctx.fibonacciCurrent << std::endl;
-                        incrementReceive(sizeof(response->data));
+                        //incrementReceive(sizeof(response->data));
+                        has_response = true;
+                        data_size = sizeof(response->data);
                     }
                     else
                     {
-                        incrementFailure();
+                        //incrementFailure();
                         std::cout << "Got Response with outdated sequence ID! Expected = "
                                   << ctx.expectedResponseSequenceId << "; Actual = " << receivedSequenceId
                                   << "! -> skip" << std::endl;
@@ -138,7 +142,16 @@ int main(int argc, char** argv)
                 }))
                 {
                 }
+                if(has_response)
+                {
+                    incrementReceive(data_size);
+                }
+                else
+                {
+                    incrementFailure();
+                }
                 //! [take response]
+                break;
             }
         }
         //! [wait and check if the client triggered]
